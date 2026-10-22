@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community CRM</title>
+<style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#1c2738;background:#f3f6fb}*{box-sizing:border-box}body{margin:0}header{background:#14233f;color:white;padding:1rem 2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}main{max-width:1100px;margin:1.5rem auto;padding:0 1rem}.tabs{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}button{cursor:pointer;border:0;border-radius:6px;padding:.65rem .9rem;background:#2459a9;color:white;font:inherit}.tabs button{background:#dce3ed;color:#14233f}.tabs button.active{background:#2459a9;color:white}.panel,.stat{background:white;border:1px solid #dce3ed;border-radius:10px;padding:1rem;margin-bottom:1rem}.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem}.stat strong{display:block;font-size:1.8rem;margin-top:.4rem}form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.75rem;margin-bottom:1rem}label{display:flex;flex-direction:column;gap:.3rem;font-size:.9rem}input,select{padding:.65rem;border:1px solid #b8c4d5;border-radius:6px;font:inherit;width:100%}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;background:white}th,td{text-align:left;padding:.7rem;border-bottom:1px solid #dce3ed;white-space:nowrap}th{background:#f3f6fb}.danger{background:#a52828}.muted{color:#64748b}.hidden{display:none}.notice{padding:.7rem;background:#edf7ef;border-radius:6px;margin-bottom:1rem}@media(max-width:600px){header{padding:1rem}main{margin:1rem auto}th,td{padding:.5rem}}
+</style>
+</head>
+<body>
+<header><div><h1 style="margin:0">Community CRM</h1><div>Contacts, memberships, donations and tasks</div></div><button id="export">Export backup</button></header>
+<main>
+<div class="stats" id="stats"></div>
+<nav class="tabs" aria-label="CRM sections"><button data-tab="contacts" class="active">Contacts</button><button data-tab="memberships">Memberships</button><button data-tab="donations">Donations</button><button data-tab="tasks">Tasks</button></nav>
+<section class="panel"><h2 id="form-title">Add contact</h2><form id="record-form"></form><div id="message" role="status" class="muted"></div></section>
+<section class="panel"><div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap"><h2 id="list-title">Contacts</h2><input id="search" placeholder="Search records" aria-label="Search records" style="max-width:300px"></div><div class="table-wrap" id="table"></div></section>
+<p class="muted">Demo app for coursework. Data is stored in this browser's localStorage; it is not shared across devices. Do not enter real sensitive personal or payment data.</p>
+</main>
+<script>
+/* DATA STORAGE: db is the in-memory application state. loadDB reads saved JSON
+   from localStorage; saveDB writes every successful change back to the browser. */
+const KEY='communityCRM.v1';
+const emptyDB=()=>({contacts:[],memberships:[],donations:[],tasks:[]});
+function loadDB(){try{return {...emptyDB(),...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch{return emptyDB()}}
+let db=loadDB(),tab='contacts',editing=null;
+const schemas={
+ contacts:{title:'Contacts',fields:[['firstName','First name','text',true],['lastName','Last name','text',true],['email','Email','email',false],['phone','Phone','tel',false]],columns:['firstName','lastName','email','phone']},
+ memberships:{title:'Memberships',fields:[['contact','Contact name','text',true],['plan','Plan','text',true],['startDate','Start date','date',true],['renewalDate','Renewal date','date',true]],columns:['contact','plan','startDate','renewalDate']},
+ donations:{title:'Donations',fields:[['contact','Donor name','text',true],['amount','Amount ($)','number',true],['date','Date','date',true],['fund','Fund','text',false]],columns:['contact','amount','date','fund']},
+ tasks:{title:'Tasks',fields:[['title','Task','text',true],['assignedTo','Assigned to','text',false],['dueDate','Due date','date',false],['status','Status','select',true]],columns:['title','assignedTo','dueDate','status']}
+};
+function saveDB(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderForm(){const s=schemas[tab];document.querySelector('#form-title').textContent=(editing?'Edit ':'Add ')+s.title.slice(0,-1).toLowerCase();const row=editing?db[tab].find(x=>x.id===editing):{};document.querySelector('#record-form').innerHTML=s.fields.map(([key,label,type,required])=>'<label>'+label+(required?' *':'')+(type==='select'?'<select name="'+key+'" required><option value="Open">Open</option><option value="In progress">In progress</option><option value="Complete">Complete</option></select>':'<input name="'+key+'" type="'+type+'" '+(required?'required':'')+' '+(key==='amount'?'min="0" step="0.01"':'')+' value="'+esc(row?.[key]??'')+'">')+'</label>').join('')+'<div style="display:flex;gap:.5rem;align-items:end"><button type="submit">'+(editing?'Save changes':'Add record')+'</button>'+(editing?'<button type="button" id="cancel" style="background:#64748b">Cancel</button>':'')+'</div>';document.querySelector('#record-form').onsubmit=submitForm;const cancel=document.querySelector('#cancel');if(cancel)cancel.onclick=()=>{editing=null;renderForm()}}
+function submitForm(e){e.preventDefault();const data=Object.fromEntries(new FormData(e.target));if(data.email&&db.contacts.some(c=>c.email.toLowerCase()===data.email.toLowerCase()&&c.id!==editing)){document.querySelector('#message').textContent='A contact with that email already exists.';return}if(tab==='memberships'&&data.startDate&&data.renewalDate&&data.renewalDate<data.startDate){document.querySelector('#message').textContent='Renewal date cannot be earlier than start date.';return}if(tab==='donations')data.amount=Number(data.amount);if(editing){db[tab]=db[tab].map(x=>x.id===editing?{...x,...data}:x)}else db[tab].push({id:crypto.randomUUID(),...data});editing=null;document.querySelector('#message').textContent='Saved successfully.';saveDB();renderForm()}
+function render(){const all=Object.values(db).flat();document.querySelector('#stats').innerHTML=[['Contacts',db.contacts.length],['Memberships',db.memberships.length],['Donations total','$'+db.donations.reduce((n,d)=>n+Number(d.amount||0),0).toFixed(2)],['Open tasks',db.tasks.filter(t=>t.status!=='Complete').length]].map(([k,v])=>'<div class="stat"><span>'+k+'</span><strong>'+v+'</strong></div>').join('');const s=schemas[tab],q=document.querySelector('#search').value.toLowerCase();document.querySelector('#list-title').textContent=s.title;const rows=db[tab].filter(r=>s.columns.some(c=>String(r[c]??'').toLowerCase().includes(q)));document.querySelector('#table').innerHTML=rows.length?'<table><thead><tr>'+s.columns.map(c=>'<th>'+esc(s.fields.find(f=>f[0]===c)?.[1]||c)+'</th>').join('')+'<th>Actions</th></tr></thead><tbody>'+rows.map(r=>'<tr>'+s.columns.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'<td><button data-edit="'+r.id+'">Edit</button> <button class="danger" data-delete="'+r.id+'">Delete</button></td></tr>').join('')+'</tbody></table>':'<p class="muted">No records found. Add a record using the form above.</p>';document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{editing=b.dataset.edit;renderForm();window.scrollTo({top:0,behavior:'smooth'})});document.querySelectorAll('[data-delete]').forEach(b=>b.onclick=()=>{if(confirm('Delete this record?')){db[tab]=db[tab].filter(r=>r.id!==b.dataset.delete);saveDB()}})}
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;editing=null;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelector('#search').value='';document.querySelector('#message').textContent='';renderForm();render()});
+document.querySelector('#search').oninput=render;
+document.querySelector('#export').onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='community-crm-backup.json';a.click();URL.revokeObjectURL(url)};
+renderForm();render();
+</script>
+</body>
+</html>
