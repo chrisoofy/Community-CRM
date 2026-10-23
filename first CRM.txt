@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Community CRM</title>
+<style>
+:root{--navy:#14233f;--blue:#2459a9;--pale:#f3f6fb;--ink:#1c2738;--muted:#64748b;--line:#dce3ed;--white:#fff;--green:#16794b;--red:#b42318;--gold:#f2b84b}
+*{box-sizing:border-box}body{margin:0;background:var(--pale);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0;border-radius:9px;padding:10px 14px;background:var(--blue);color:white;font-weight:650}button:hover{filter:brightness(.94)}button.secondary{background:#e8eef7;color:var(--navy)}button.danger{background:#b42318}button.small{padding:6px 9px;font-size:13px}
+header{background:var(--navy);color:white;padding:20px clamp(16px,4vw,44px);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.brand-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:var(--gold);color:var(--navy);font-weight:900;font-size:21px}.brand h1{font-size:22px;margin:0}.brand p{margin:2px 0 0;color:#d0d9e8;font-size:13px}
+header .right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.app{display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - 82px)}
+nav{background:white;border-right:1px solid var(--line);padding:18px 12px}
+.nav-label{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.1em;padding:10px 12px}
+nav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;margin:3px 0;background:transparent;color:#34445c;font-weight:600}
+nav button.active,nav button:hover{background:#eaf1fc;color:var(--blue)}
+main{padding:clamp(16px,3vw,32px);max-width:1500px;width:100%;margin:0 auto}
+.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:20px}.page-head h2{font-size:27px;line-height:1.2;margin:0 0 7px}.page-head p{margin:0;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.stat,.panel{background:white;border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px #172b4d08}
+.stat{padding:17px}.stat .label{font-size:13px;color:var(--muted)}.stat .number{font-size:28px;font-weight:800;margin-top:4px}.stat .foot{font-size:12px;color:var(--muted);margin-top:4px}
+.panel{padding:18px;margin-bottom:18px}.panel h3{margin:0 0 14px;font-size:17px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}.toolbar input,.toolbar select{max-width:260px}
+input,select,textarea{width:100%;padding:10px 11px;border:1px solid #cbd5e1;border-radius:8px;background:white;color:var(--ink)}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:3px solid #8ab7ff;outline-offset:2px}
+label{display:block;font-size:13px;font-weight:700;margin:0 0 6px} .field{margin-bottom:13px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px}.field.full{grid-column:1/-1}
+.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{padding:11px 10px;text-align:left;border-bottom:1px solid #e8edf4;font-size:13px}th{background:#f7f9fc;color:#526176;font-size:12px;text-transform:uppercase;letter-spacing:.04em}tbody tr:hover{background:#fafcff}.empty{text-align:center;padding:28px;color:var(--muted)}
+.badge{display:inline-block;border-radius:99px;padding:3px 9px;font-size:11px;font-weight:800;background:#e8eef7;color:#31445f}.badge.good{background:#dff6e9;color:#11643e}.badge.warn{background:#fff0cb;color:#805400}.badge.bad{background:#ffe4e2;color:#a21d16}
+.notice{padding:12px 14px;border-radius:9px;margin-bottom:14px;background:#e8f2ff;color:#1e477e}.notice.error{background:#ffebe9;color:#9e241b}.notice.success{background:#e1f7e9;color:#14663b}
+.split{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:16px}.list{display:grid;gap:10px}.list-item{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;justify-content:space-between;gap:12px;align-items:center}.list-item p{margin:3px 0;color:var(--muted);font-size:13px}
+dialog{border:0;border-radius:16px;padding:0;width:min(650px,calc(100% - 24px));max-height:90vh;box-shadow:0 24px 80px #0b183755}dialog::backdrop{background:#0b183777}.modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.modal-body{padding:20px 22px;overflow:auto}.modal-foot{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+.login-wrap{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(140deg,#14233f,#2459a9)}.login-card{width:min(420px,100%);background:white;border-radius:18px;padding:28px;box-shadow:0 20px 60px #07152a66}.login-card h1{margin:0 0 5px}.login-card p{color:var(--muted)}.hidden{display:none!important}.hint{font-size:12px;color:var(--muted)}.quick{display:flex;gap:8px;flex-wrap:wrap}.progress{height:8px;background:#e7edf5;border-radius:20px;overflow:hidden}.progress span{display:block;height:100%;background:var(--blue)}footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.app{grid-template-columns:180px minmax(0,1fr)}}
+@media(max-width:700px){.app{display:block}nav{display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:8px}nav .nav-label{display:none}nav button{width:auto;white-space:nowrap}.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.split{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.page-head h2{font-size:23px}}
+@media(max-width:420px){.cards{grid-template-columns:1fr 1fr}.stat{padding:12px}.stat .number{font-size:23px}}
+</style>
+</head>
+<body>
+<div id="loginScreen" class="login-wrap">
+  <form id="loginForm" class="login-card">
+    <div class="brand-mark">C</div><h1>Community CRM</h1><p>Sign in to manage contacts, memberships, donations, and tasks.</p>
+    <div id="loginMessage" class="notice hidden" role="alert"></div>
+    <div class="field"><label for="username">Username</label><input id="username" autocomplete="username" required value="admin"></div>
+    <div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required value="community123"></div>
+    <button type="submit" style="width:100%">Sign in</button>
+    <p class="hint">Demo login: <b>admin</b> / <b>community123</b>. This is a classroom demo, not secure production authentication.</p>
+  </form>
+</div>
+<div id="appScreen" class="hidden">
+<header><div class="brand"><div class="brand-mark">C</div><div><h1>Community CRM</h1><p>People, memberships, giving, and follow-ups</p></div></div><div class="right"><span id="signedInLabel">Signed in</span><button class="secondary" id="exportTop">Export CSV</button><button class="secondary" id="logoutBtn">Log out</button></div></header>
+<div class="app">
+<nav aria-label="Main navigation"><div class="nav-label">WORKSPACE</div>
+<button data-page="dashboard" class="active">▦ Overview</button><button data-page="contacts">♙ Contacts</button><button data-page="households">⌂ Households</button><button data-page="memberships">✦ Memberships</button><button data-page="donations">♡ Donations</button><button data-page="tasks">☑ Tasks</button><button data-page="reports">▤ Reports & Import</button><div class="nav-label">HELP</div><button data-page="guide">ⓘ Rubric & Help</button>
+</nav>
+<main id="mainContent"></main>
+</div>
+<footer>Community CRM · Classroom project · Data is stored in this browser on this device.</footer>
+</div>
+<dialog id="recordDialog"><form id="recordForm"><div class="modal-head"><h3 id="dialogTitle">Add record</h3><button type="button" class="secondary small" id="closeDialog" aria-label="Close dialog">✕</button></div><div class="modal-body" id="dialogFields"></div><div class="modal-foot"><button type="button" class="secondary" id="cancelDialog">Cancel</button><button type="submit">Save record</button></div></form></dialog>
+<input id="csvFile" type="file" accept=".csv,text/csv" class="hidden">
+<script>
+"use strict";
+/*
+ COMMUNITY CRM — RUBRIC AND DATA NOTES
+ Data storage: `db` is the live in-memory application state. `loadDB()` reads a JSON
+ snapshot from localStorage on startup; `saveDB()` writes changes back to localStorage.
+ This makes demo records survive a browser refresh on the same browser/device. It is
+ not a remote database, and clearing browser storage removes the saved data.
+ All CRUD functions below update `db` first and then call saveDB() and render().
+ For production, replace demo authentication and localStorage with a secure backend.
+*/
+
+// DATA MODEL: arrays hold records; IDs connect related records between modules.
+const STORAGE_KEY = "communityCRM.v1";
+const today = () => new Date().toISOString().slice(0,10);
+const uid = (prefix="id") => prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,7);
+const seedDB = () => ({
+ contacts:[
+  {id:"c1",firstName:"Jordan",lastName:"Lee",email:"jordan.lee@example.com",phone:"702-555-0101",type:"Member",household:"h1",status:"Active",notes:"Volunteers at events",created:today(),history:[{date:today(),text:"Sample contact created"}]},
+  {id:"c2",firstName:"Taylor",lastName:"Morgan",email:"taylor.morgan@example.com",phone:"702-555-0102",type:"Donor",household:"h1",status:"Active",notes:"Prefers email updates",created:today(),history:[{date:today(),text:"Sample contact created"}]},
+  {id:"c3",firstName:"Sam",lastName:"Rivera",email:"sam.rivera@example.com",phone:"702-555-0103",type:"Prospect",household:"h2",status:"Active",notes:"Interested in membership",created:today(),history:[{date:today(),text:"Sample contact created"}]}
+ ],
+ households:[{id:"h1",name:"Lee-Morgan Household",address:"100 Main Street, Las Vegas, NV",notes:"Sample household"},{id:"h2",name:"Rivera Household",address:"200 Desert Road, Las Vegas, NV",notes:"Sample household"}],
+ memberships:[{id:"m1",contactId:"c1",plan:"Annual",startDate:today(),renewalDate:addYears(today(),1),amount:60,status:"Active",history:[{date:today(),text:"Sample membership created"}]}],
+ donations:[{id:"d1",contactId:"c2",date:today(),amount:100,method:"Card",fund:"General",notes:"Sample donation",receipt:"R-1001"}],
+ tasks:[{id:"t1",title:"Send welcome email",contactId:"c3",dueDate:today(),priority:"Medium",status:"Open",notes:"Follow up about membership"}],
+ activity:[{id:"a1",date:today(),text:"Welcome to Community CRM. Sample records are provided for demonstration."}]
+});
+function addYears(date,years){const d=new Date((date||today())+"T12:00:00");d.setFullYear(d.getFullYear()+Number(years||1));return d.toISOString().slice(0,10)}
+function loadDB(){try{const saved=localStorage.getItem(STORAGE_KEY);if(saved){const parsed=JSON.parse(saved);if(parsed.contacts&&parsed.households&&parsed.memberships&&parsed.donations&&parsed.tasks)return parsed;}}catch(e){console.warn("Could not read saved CRM data",e)}return seedDB()}
+let db=loadDB(); // Current app records. All changes are made to this object.
+let currentPage="dashboard", editing=null, currentModule=null, signedIn=false;
+function saveDB(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(db));return true}catch(e){alert("Could not save to this browser. Storage may be full or disabled.");return false}}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function money(n){return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(n)||0)}
+function contactName(id){const c=db.contacts.find(x=>x.id===id);return c?c.firstName+" "+c.lastName:"Unknown contact"}
+function logActivity(text){db.activity.unshift({id:uid("a"),date:today(),text});db.activity=db.activity.slice(0,150)}
+function historyForContact(id,text){const c=db.contacts.find(x=>x.id===id);if(c){c.history=c.history||[];c.history.unshift({date:today(),text});}}
+function persistAndRender(message){saveDB();render();if(message)showNotice(message)}
+function showNotice(message,type="success"){const el=document.getElementById("pageNotice");if(el){el.className="notice "+(type==="error"?"error":"success");el.textContent=message;el.classList.remove("hidden");setTimeout(()=>el?.classList.add("hidden"),4500)}}
+function badge(text){const t=String(text||"");let cls=["Active","Complete","Paid","Renewed"].includes(t)?"good":["Due Soon","Medium","Open","Pending"].includes(t)?"warn":["Archived","Overdue","Cancelled"].includes(t)?"bad":"";return `<span class="badge ${cls}">${esc(t)}</span>`}
+function contactOptions(selected){return '<option value="">Select contact…</option>'+db.contacts.filter(c=>c.status!=="Archived").map(c=>`<option value="${esc(c.id)}" ${c.id===selected?"selected":""}>${esc(c.firstName+" "+c.lastName)} — ${esc(c.email)}</option>`).join("")}
+function householdOptions(selected){return '<option value="">No household</option>'+db.households.map(h=>`<option value="${esc(h.id)}" ${h.id===selected?"selected":""}>${esc(h.name)}</option>`).join("")}
+function pageHead(title,sub,actions=""){return `<div class="page-head"><div><h2>${title}</h2><p>${sub}</p></div><div class="actions">${actions}</div></div><div id="pageNotice" class="notice hidden" role="status"></div>`}
+function stat(label,value,foot){return `<div class="stat"><div class="label">${label}</div><div class="number">${value}</div><div class="foot">${foot||""}</div></div>`}
+function table(headers,rows,empty="No records yet."){return `<div class="table-wrap"><table><thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows||`<tr><td colspan="${headers.length}" class="empty">${empty}</td></tr>`}</tbody></table></div>`}
+function actionButtons(module,id,archivable=false){return `<div class="actions"><button class="secondary small" data-edit="${module}" data-id="${id}">Edit</button>${archivable?`<button class="secondary small" data-archive="${id}">Archive</button>`:""}<button class="danger small" data-delete="${module}" data-id="${id}">Delete</button></div>`}
+function render(){
+ if(!signedIn)return;
+ document.querySelectorAll("nav [data-page]").forEach(b=>b.classList.toggle("active",b.dataset.page===currentPage));
+ const root=document.getElementById("mainContent");
+ const views={dashboard:dashboardPage,contacts:contactsPage,households:householdsPage,memberships:membershipsPage,donations:donationsPage,tasks:tasksPage,reports:reportsPage,guide:guidePage};
+ root.innerHTML=(views[currentPage]||dashboardPage)();
+}
+function dashboardPage(){
+ const active=db.contacts.filter(c=>c.status==="Active").length, total=db.donations.reduce((s,d)=>s+Number(d.amount||0),0), open=db.tasks.filter(t=>t.status!=="Complete").length;
+ const renew=db.memberships.filter(m=>m.status==="Active"&&daysUntil(m.renewalDate)<=30).length;
+ const recent=db.activity.slice(0,6).map(a=>`<div class="list-item"><div><b>${esc(a.text)}</b><p>${esc(a.date)}</p></div></div>`).join("");
+ return pageHead("Overview","A quick look at your community relationships.",`<button data-add="contacts">+ Add contact</button><button class="secondary" data-add="donations">+ Record donation</button>`)
+ +`<div class="cards">${stat("Active contacts",active,"People currently active")}${stat("Total donations",money(total),"All recorded donations")}${stat("Open tasks",open,"Follow-ups to complete")}${stat("Renewals in 30 days",renew,"Review upcoming renewals")}</div>
+ <div class="split"><section class="panel"><h3>Quick actions</h3><div class="quick"><button data-add="contacts">Add contact</button><button data-add="memberships">Create membership</button><button data-add="tasks">Create task</button><button class="secondary" data-page="reports">Import or export</button></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h3>Membership renewal health</h3><p class="hint">Active memberships with renewal dates in the next 30 days.</p><div class="progress"><span style="width:${db.memberships.length?Math.min(100,renew/db.memberships.length*100):0}%"></span></div><p>${renew} renewal${renew===1?"":"s"} to review</p></section><section class="panel"><h3>Recent activity</h3><div class="list">${recent||'<p class="empty">Activity appears here when records change.</p>'}</div></section></div>`;
+}
+function contactsPage(){
+ const q=(document.getElementById("contactSearch")?.value||"").toLowerCase(), status=document.getElementById("contactStatus")?.value||"";
+ const list=db.contacts.filter(c=>(c.firstName+" "+c.lastName+" "+c.email+" "+c.phone).toLowerCase().includes(q)&&(!status||c.status===status));
+ const rows=list.map(c=>`<tr><td><b>${esc(c.firstName+" "+c.lastName)}</b><br><span class="hint">${esc(c.email)}</span></td><td>${esc(c.phone)}</td><td>${esc(c.type)}</td><td>${esc(db.households.find(h=>h.id===c.household)?.name||"—")}</td><td>${badge(c.status)}</td><td>${actionButtons("contacts",c.id,c.status!=="Archived")}</td></tr>`).join("");
+ return pageHead("Contacts","Create, search, update, archive, and review people records.",`<button data-add="contacts">+ Add contact</button>`)
+ +`<section class="panel"><div class="toolbar"><input id="contactSearch" placeholder="Search name, email, phone…" aria-label="Search contacts" value="${esc(q)}"><select id="contactStatus" aria-label="Filter by status"><option value="">All statuses</option>${["Active","Archived"].map(s=>`<option ${s===status?"selected":""}>${s}</option>`).join("")}</select><button class="secondary" id="clearContactFilters">Clear filters</button></div>
+ ${table(["Contact","Phone","Type","Household","Status","Actions"],rows,"No contacts match. Try clearing the filters.")}</section>
+ <section class="panel"><h3>Contact data and history</h3><p class="hint">Edit a contact to update details. Use the history view to review recorded changes and linked donations, memberships, and tasks.</p><div class="toolbar"><select id="historyContact" aria-label="Choose contact for history">${contactOptions(db.contacts[0]?.id)}</select><button class="secondary" id="viewHistory">View history</button></div><div id="historyOutput"></div></section>`;
+}
+function householdsPage(){
+ const rows=db.households.map(h=>`<tr><td><b>${esc(h.name)}</b></td><td>${esc(h.address||"—")}</td><td>${db.contacts.filter(c=>c.household===h.id).length}</td><td>${actionButtons("households",h.id)}</td></tr>`).join("");
+ return pageHead("Households","Group related contacts under one household.",`<button data-add="households">+ Add household</button>`)+`<section class="panel">${table(["Household","Address","Contacts","Actions"],rows)}</section><section class="panel"><h3>Household notes</h3><p class="hint">Assign contacts to households from the contact form. Deleting a household does not delete contacts; it removes their household association.</p></section>`;
+}
+function daysUntil(date){if(!date)return 9999;return Math.ceil((new Date(date+"T12:00:00")-new Date(today()+"T12:00:00"))/86400000)}
+function membershipStatus(m){if(m.status!=="Active")return m.status;const d=daysUntil(m.renewalDate);return d<0?"Overdue":d<=30?"Due Soon":"Active"}
+function membershipsPage(){
+ const rows=db.memberships.map(m=>`<tr><td>${esc(contactName(m.contactId))}</td><td>${esc(m.plan)}</td><td>${esc(m.startDate)}</td><td>${esc(m.renewalDate)}</td><td>${money(m.amount)}</td><td>${badge(membershipStatus(m))}</td><td>${actionButtons("memberships",m.id)}</td></tr>`).join("");
+ return pageHead("Memberships & renewals","Track plans, dates, payments, and upcoming renewals.",`<button data-add="memberships">+ New membership</button>`)+`<div class="cards">${stat("Memberships",db.memberships.length,"All plans")}${stat("Active",db.memberships.filter(m=>membershipStatus(m)==="Active").length,"Not due soon")}${stat("Due soon",db.memberships.filter(m=>membershipStatus(m)==="Due Soon").length,"Next 30 days")}${stat("Overdue",db.memberships.filter(m=>membershipStatus(m)==="Overdue").length,"Renewal date passed")}</div><section class="panel">${table(["Contact","Plan","Start date","Renewal date","Amount","Status","Actions"],rows)}</section>`;
+}
+function donationsPage(){
+ const q=(document.getElementById("donationSearch")?.value||"").toLowerCase();
+ const rows=db.donations.filter(d=>(contactName(d.contactId)+" "+d.fund+" "+d.method+" "+d.receipt).toLowerCase().includes(q)).map(d=>`<tr><td>${esc(d.date)}</td><td>${esc(contactName(d.contactId))}</td><td>${money(d.amount)}</td><td>${esc(d.method)}</td><td>${esc(d.fund)}</td><td>${esc(d.receipt||"—")}</td><td>${actionButtons("donations",d.id)}</td></tr>`).join("");
+ return pageHead("Donations","Record gifts, filter records, and review giving totals.",`<button data-add="donations">+ Record donation</button><button class="secondary" data-page="reports">Reports</button>`)+`<div class="cards">${stat("Total given",money(db.donations.reduce((s,d)=>s+Number(d.amount||0),0)),"All donation records")}${stat("Number of gifts",db.donations.length,"Recorded gifts")}${stat("Average gift",money(db.donations.length?db.donations.reduce((s,d)=>s+Number(d.amount||0),0)/db.donations.length:0),"Across all records")}${stat("This month",money(db.donations.filter(d=>d.date?.slice(0,7)===today().slice(0,7)).reduce((s,d)=>s+Number(d.amount||0),0)),"Gifts this calendar month")}</div><section class="panel"><div class="toolbar"><input id="donationSearch" placeholder="Search donor, fund, method, receipt…" aria-label="Search donations" value="${esc(q)}"></div>${table(["Date","Donor","Amount","Method","Fund","Receipt","Actions"],rows)}</section>`;
+}
+function tasksPage(){
+ const filter=document.getElementById("taskFilter")?.value||"";
+ const rows=db.tasks.filter(t=>!filter||t.status===filter).map(t=>`<tr><td><b>${esc(t.title)}</b><br><span class="hint">${esc(t.notes||"")}</span></td><td>${esc(contactName(t.contactId))}</td><td>${esc(t.dueDate||"—")}</td><td>${badge(t.priority)}</td><td>${badge(t.status)}</td><td><div class="actions">${t.status!=="Complete"?`<button class="small" data-complete="${t.id}">Complete</button>`:""}${actionButtons("tasks",t.id)}</div></td></tr>`).join("");
+ return pageHead("Tasks & follow-ups","Assign next steps and track completion.",`<button data-add="tasks">+ New task</button>`)+`<section class="panel"><div class="toolbar"><select id="taskFilter" aria-label="Filter tasks"><option value="">All tasks</option>${["Open","In Progress","Complete"].map(s=>`<option ${filter===s?"selected":""}>${s}</option>`).join("")}</select></div>${table(["Task","Contact","Due date","Priority","Status","Actions"],rows)}</section>`;
+}
+function reportsPage(){
+ const total=db.donations.reduce((s,d)=>s+Number(d.amount||0),0);
+ const donors=new Set(db.donations.map(d=>d.contactId)).size;
+ const csvRows=[["Date","First Name","Last Name","Email","Phone","Type","Status","Household"],...db.contacts.map(c=>[c.created,c.firstName,c.lastName,c.email,c.phone,c.type,c.status,db.households.find(h=>h.id===c.household)?.name||""])];
+ return pageHead("Reports & data import","Import validated CSV contacts, export records, and review basic reports.",`<button id="importBtn">Import contacts CSV</button><button id="exportContacts">Export contacts CSV</button>`)+
+ `<div class="cards">${stat("Total giving",money(total),"Recorded donations")}${stat("Unique donors",donors,"Contacts with gifts")}${stat("Active memberships",db.memberships.filter(m=>m.status==="Active").length,"Stored status")}${stat("Task completion",db.tasks.length?Math.round(db.tasks.filter(t=>t.status==="Complete").length/db.tasks.length*100)+"%":"0%","Tasks marked complete")}</div>
+ <section class="panel"><h3>Import contacts from CSV</h3><p>Choose a CSV with a header row. Supported columns: <code>firstName,lastName,email,phone,type,status,household</code>. First and last name are required. Existing contacts with the same email are skipped to prevent duplicates.</p><button id="importBtn2">Choose CSV file</button><p class="hint">Tip: Export contacts first to see a sample CSV format. Imports add records; they do not delete or overwrite existing contacts.</p><div id="importResult" aria-live="polite"></div></section>
+ <section class="panel"><h3>Report summary</h3>${table(["Metric","Value"],`<tr><td>Total contacts (including archived)</td><td>${db.contacts.length}</td></tr><tr><td>Active contacts</td><td>${db.contacts.filter(c=>c.status==="Active").length}</td></tr><tr><td>Total donation amount</td><td>${money(total)}</td></tr><tr><td>Average donation</td><td>${money(db.donations.length?total/db.donations.length:0)}</td></tr><tr><td>Open / incomplete tasks</td><td>${db.tasks.filter(t=>t.status!=="Complete").length}</td></tr><tr><td>Overdue memberships</td><td>${db.memberships.filter(m=>membershipStatus(m)==="Overdue").length}</td></tr>`)}</section>
+ <section class="panel"><h3>Backup and reset</h3><p>Export a JSON backup before testing. Resetting deletes this app's saved records from this browser and restores sample data.</p><div class="actions"><button class="secondary" id="backupBtn">Download JSON backup</button><button class="danger" id="resetBtn">Reset sample data</button></div></section>`;
+}
+function guidePage(){
+ return pageHead("Rubric & help","Use this page to demonstrate the project and explain how the data works.")+
+ `<section class="panel"><h3>Feature checklist</h3>${table(["Rubric area","Where to demonstrate it","Evidence / expected behavior"],[
+ `<tr><td>CRM 1 — Contact starter</td><td>Contacts</td><td>Create, edit, search, archive, delete; required-field and email validation.</td></tr>`,
+ `<tr><td>CRM 2 — Contacts and login</td><td>Sign-in, Contacts, Households</td><td>Demo login, household assignment, search, archive, record history.</td></tr>`,
+ `<tr><td>CRM 3 — Memberships</td><td>Memberships</td><td>Plan and start date, calculated renewal date, due-soon and overdue status.</td></tr>`,
+ `<tr><td>CRM 4 — Donations and tasks</td><td>Donations, Tasks</td><td>Record/filter gifts, calculate totals, add notes, complete follow-up tasks.</td></tr>`,
+ `<tr><td>CRM 5 — Import and reports</td><td>Reports & Import</td><td>CSV import with validation and duplicate checks, CSV export, summary reports.</td></tr>`,
+ `<tr><td>CRM 6 — Finish and test</td><td>All pages</td><td>Responsive layout, keyboard labels, edge-case messages, data persistence, test plan below.</td></tr>`,
+ `<tr><td>GitHub / code explanation</td><td>Source code and README</td><td>Comments explain state, storage, CRUD, validation, and render functions.</td></tr>`
+ ].join(""))}</section>
+ <section class="panel"><h3>How data is stored and changed</h3><ol><li><b>Setup:</b> <code>seedDB()</code> creates starter records for contacts, households, memberships, donations, tasks, and activity.</li><li><b>Load:</b> <code>loadDB()</code> tries to read the JSON data saved under <code>communityCRM.v1</code> in browser localStorage.</li><li><b>Change:</b> forms call the save handler, which adds or updates an object in the appropriate <code>db</code> array.</li><li><b>Save:</b> <code>saveDB()</code> serializes the whole <code>db</code> object back to localStorage.</li><li><b>Display:</b> <code>render()</code> calls the page renderer so tables and dashboard statistics reflect the latest state.</li><li><b>Related records:</b> memberships, donations, and tasks store a contact ID, which links them to the relevant contact.</li></ol><div class="notice">This is a front-end classroom demo. The sample login is not secure and localStorage is not a shared or encrypted database. Do not enter real sensitive personal or payment data.</div></section>
+ <section class="panel"><h3>Manual test plan</h3><ol><li><b>Contact validation:</b> try saving a contact without a first name, then with an invalid email. The form should stop and explain the required format.</li><li><b>CRUD and persistence:</b> add a contact, edit the phone, refresh the browser, then search for that contact. The change should remain.</li><li><b>Household relationship:</b> assign two contacts to one household and check the contact count in Households.</li><li><b>Membership date:</b> create a one-year membership and verify the renewal date is one year after its start date.</li><li><b>Donation totals:</b> add a $25 donation and check that total giving increases by $25.</li><li><b>Task flow:</b> create a task, mark it complete, and filter tasks by Complete.</li><li><b>CSV duplicate handling:</b> import a CSV containing an existing email and a new email; the duplicate should be skipped and the new contact imported.</li><li><b>Edge case:</b> search for a term with no match. A helpful empty-state message should appear.</li><li><b>Backup:</b> download a JSON backup, reset sample data only after confirming, then verify sample data returns.</li></ol><p class="hint">Record the actual outcome of each test after you run it; do not claim a test passed until you have personally verified it.</p></section>
+ <section class="panel"><h3>AI assistance statement — personalize before submitting</h3><p>Suggested honest template: “I used AI to help plan the CRM pages, explain JavaScript data storage, and draft a manual test checklist. I reviewed the code, ran the listed tests, and made these changes myself: [write your actual changes].” Only submit a statement that accurately describes your work.</p></section>`;
+}
+
+// FORM SCHEMA: each module defines its editable fields in one place.
+// Validation runs before any record is written to db.
+function fieldsFor(module,record={}){
+ const text=(key,label,opts={})=>({key,label,type:"text",...opts});
+ const date=(key,label,opts={})=>({key,label,type:"date",...opts});
+ const select=(key,label,options,opts={})=>({key,label,type:"select",options,...opts});
+ const textarea=(key,label,opts={})=>({key,label,type:"textarea",...opts});
+ const number=(key,label,opts={})=>({key,label,type:"number",...opts});
+ const schemas={
+ contacts:[text("firstName","First name",{required:true}),text("lastName","Last name",{required:true}),text("email","Email address",{type:"email",required:true}),text("phone","Phone"),select("type","Contact type",["Member","Donor","Prospect","Volunteer","Other"]),select("household","Household",[],{dynamic:"households"}),select("status","Status",["Active","Archived"]),textarea("notes","Notes",{full:true})],
+ households:[text("name","Household name",{required:true}),text("address","Address"),textarea("notes","Notes",{full:true})],
+ memberships:[select("contactId","Contact",[],{dynamic:"contacts",required:true}),select("plan","Membership plan",["Annual","Student","Family","Lifetime","Monthly"]),date("startDate","Start date",{required:true}),date("renewalDate","Renewal date",{required:true}),number("amount","Amount ($)",{required:true,min:0,step:"0.01"}),select("status","Stored status",["Active","Pending","Cancelled","Renewed"]),textarea("notes","Notes",{full:true})],
+ donations:[select("contactId","Donor",[],{dynamic:"contacts",required:true}),date("date","Donation date",{required:true}),number("amount","Amount ($)",{required:true,min:0.01,step:"0.01"}),select("method","Payment method",["Cash","Check","Card","Online","Other"]),text("fund","Fund / campaign",{required:true}),text("receipt","Receipt ID"),textarea("notes","Notes",{full:true})],
+ tasks:[text("title","Task title",{required:true}),select("contactId","Related contact",[],{dynamic:"contacts"}),date("dueDate","Due date"),select("priority","Priority",["Low","Medium","High"]),select("status","Status",["Open","In Progress","Complete"]),textarea("notes","Task notes",{full:true})]
+ };
+ return (schemas[module]||[]).map(f=>({...f,value:record[f.key]??(f.key==="status"?(module==="contacts"?"Active":module==="memberships"?"Active":module==="tasks"?"Open":""):f.key==="type"?"Prospect":f.key==="plan"?"Annual":f.key==="method"?"Card":f.key==="priority"?"Medium":f.key==="startDate"||f.key==="date"?today():f.key==="renewalDate"?addYears(today(),1):"")}));
+}
+function openForm(module,id=null){
+ currentModule=module;editing=id;const record=id?db[module].find(x=>x.id===id):{};
+ if(!record){record={};}
+ document.getElementById("dialogTitle").textContent=(id?"Edit ":"Add ")+({contacts:"contact",households:"household",memberships:"membership",donations:"donation",tasks:"task"}[module]||"record");
+ const fs=fieldsFor(module,record);
+ document.getElementById("dialogFields").innerHTML=fs.map(f=>{
+  let opts=f.options||[];
+  if(f.dynamic==="contacts")return `<div class="field ${f.full?"full":""}"><label for="f_${f.key}">${f.label}${f.required?" *":""}</label><select id="f_${f.key}" name="${f.key}" ${f.required?"required":""}>${contactOptions(f.value)}</select></div>`;
+  if(f.dynamic==="households")return `<div class="field"><label for="f_${f.key}">${f.label}</label><select id="f_${f.key}" name="${f.key}">${householdOptions(f.value)}</select></div>`;
+  let control=f.type==="select"?`<select id="f_${f.key}" name="${f.key}" ${f.required?"required":""}>${opts.map(o=>`<option ${o===f.value?"selected":""}>${esc(o)}</option>`).join("")}</select>`:f.type==="textarea"?`<textarea id="f_${f.key}" name="${f.key}" rows="3">${esc(f.value)}</textarea>`:`<input id="f_${f.key}" name="${f.key}" type="${f.type||"text"}" value="${esc(f.value)}" ${f.required?"required":""} ${f.min!==undefined?`min="${f.min}"`:""} ${f.step?`step="${f.step}"`:""}>`;
+  return `<div class="field ${f.full?"full":""}"><label for="f_${f.key}">${f.label}${f.required?" *":""}</label>${control}</div>`;
+ }).join("")+(module==="memberships"?'<p class="hint field full">Choose a start date. Renewal date defaults to one year from today; update it if needed.</p>':"");
+ document.getElementById("recordDialog").showModal();
+ if(module==="memberships"){
+  const start=document.getElementById("f_startDate"), renewal=document.getElementById("f_renewalDate");
+  start?.addEventListener("change",()=>{if(!editing&&start.value)renewal.value=addYears(start.value,1)},{once:false});
+ }
+}
+function deleteRecord(module,id){
+ const rec=db[module]?.find(x=>x.id===id);if(!rec)return;
+ if(!confirm("Delete this record? This cannot be undone unless you have a backup."))return;
+ db[module]=db[module].filter(x=>x.id!==id);
+ if(module==="households")db.contacts.forEach(c=>{if(c.household===id)c.household=""});
+ if(module==="contacts"){
+  db.memberships=db.memberships.filter(x=>x.contactId!==id);db.donations=db.donations.filter(x=>x.contactId!==id);db.tasks.forEach(t=>{if(t.contactId===id)t.contactId=""});
+ }
+ logActivity("Deleted "+module.slice(0,-1)+" record: "+(rec.name||rec.firstName+" "+rec.lastName||rec.title||id));
+ persistAndRender("Record deleted.");
+}
+function archiveContact(id){const c=db.contacts.find(x=>x.id===id);if(!c)return;c.status=c.status==="Archived"?"Active":"Archived";historyForContact(id,"Contact status changed to "+c.status);logActivity(c.firstName+" "+c.lastName+" was "+c.status.toLowerCase()+".");persistAndRender("Contact status updated.");}
+function csvEscape(v){const s=String(v??"");return /[",\n\r]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function download(name,content,type="text/plain"){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function exportContacts(){
+ const headers=["firstName","lastName","email","phone","type","status","household"];
+ const rows=db.contacts.map(c=>headers.map(k=>k==="household"?(db.households.find(h=>h.id===c.household)?.name||""):c[k]||""));
+ download("community-crm-contacts.csv",[headers.join(","),...rows.map(r=>r.map(csvEscape).join(","))].join("\r\n"),"text/csv;charset=utf-8");
+}
+function parseCSV(text){
+ // Small RFC4180-style parser: handles commas and escaped quotes inside quoted fields.
+ const rows=[];let row=[],field="",quoted=false;
+ for(let i=0;i<text.length;i++){const ch=text[i];if(quoted){if(ch==='"'&&text[i+1]==='"'){field+='"';i++}else if(ch==='"')quoted=false;else field+=ch}
+ else if(ch==='"')quoted=true;else if(ch===","){row.push(field);field=""}else if(ch==="\n"){row.push(field.replace(/\r$/,""));rows.push(row);row=[];field=""}else field+=ch}
+ if(field.length||row.length){row.push(field.replace(/\r$/,""));rows.push(row)}
+ if(quoted)throw new Error("CSV has an unclosed quotation mark.");
+ return rows.filter(r=>r.some(v=>v.trim()!==""));
+}
+async function importCSV(file){
+ const output=document.getElementById("importResult");if(!file)return;
+ try{
+  const rows=parseCSV(await file.text());if(rows.length<2)throw new Error("CSV needs a header row and at least one data row.");
+  const headers=rows[0].map(h=>h.trim());const required=["firstname","lastname"];
+  if(!required.every(h=>headers.some(x=>x.toLowerCase()===h)))throw new Error("Required CSV columns: firstName and lastName.");
+  const idx={};headers.forEach((h,i)=>idx[h.toLowerCase()]=i);let added=0,skipped=0,invalid=0;
+  rows.slice(1).forEach((r,n)=>{
+   const get=k=>(r[idx[k]]||"").trim(),firstName=get("firstname"),lastName=get("lastname"),email=get("email");
+   if(!firstName||!lastName){invalid++;return}
+   if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){invalid++;return}
+   if(email&&db.contacts.some(c=>c.email.toLowerCase()===email.toLowerCase())){skipped++;return}
+   const houseName=get("household");let household="";
+   if(houseName){let h=db.households.find(x=>x.name.toLowerCase()===houseName.toLowerCase());if(!h){h={id:uid("h"),name:houseName,address:"",notes:"Imported from CSV"};db.households.push(h)}household=h.id}
+   const c={id:uid("c"),firstName,lastName,email,phone:get("phone"),type:get("type")||"Prospect",status:get("status")==="Archived"?"Archived":"Active",household,notes:"Imported from CSV",created:today(),history:[{date:today(),text:"Imported from CSV"}]};
+   db.contacts.push(c);added++;
+  });
+  if(added){logActivity(`CSV import added ${added} contact(s); skipped ${skipped} duplicate(s); rejected ${invalid} invalid row(s).`);saveDB()}
+  output.className="notice "+(invalid?"error":"success");output.textContent=`Import finished: ${added} added, ${skipped} duplicate(s) skipped, ${invalid} invalid row(s) rejected.`;render();
+  const out2=document.getElementById("importResult");if(out2){out2.className=output.className;out2.textContent=output.textContent}
+ }catch(e){output.className="notice error";output.textContent="Import failed: "+e.message}
+}
+document.getElementById("loginForm").addEventListener("submit",e=>{
+ e.preventDefault();const u=document.getElementById("username").value.trim(),p=document.getElementById("password").value;
+ const msg=document.getElementById("loginMessage");
+ // Demo-only authentication. Never use hard-coded credentials in a real application.
+ if(u==="admin"&&p==="community123"){signedIn=true;document.getElementById("loginScreen").classList.add("hidden");document.getElementById("appScreen").classList.remove("hidden");document.getElementById("signedInLabel").textContent="Signed in as "+u;render()}
+ else{msg.textContent="Login did not match the demo credentials. Try admin / community123.";msg.classList.remove("hidden");msg.classList.add("error")}
+});
+document.getElementById("logoutBtn").addEventListener("click",()=>{signedIn=false;document.getElementById("appScreen").classList.add("hidden");document.getElementById("loginScreen").classList.remove("hidden")});
+document.getElementById("exportTop").addEventListener("click",exportContacts);
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-page]");if(b){currentPage=b.dataset.page;render()}});
+document.getElementById("mainContent").addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.page){currentPage=b.dataset.page;render();return}
+ if(b.dataset.add){openForm(b.dataset.add);return}
+ if(b.dataset.edit){openForm(b.dataset.edit,b.dataset.id);return}
+ if(b.dataset.delete){deleteRecord(b.dataset.delete,b.dataset.id);return}
+ if(b.dataset.archive){archiveContact(b.dataset.archive);return}
+ if(b.dataset.complete){const t=db.tasks.find(x=>x.id===b.dataset.complete);if(t){t.status="Complete";logActivity("Completed task: "+t.title);persistAndRender("Task marked complete.")}return}
+ if(b.id==="clearContactFilters"){const s=document.getElementById("contactSearch");if(s)s.value="";const f=document.getElementById("contactStatus");if(f)f.value="";render();return}
+ if(b.id==="viewHistory"){const id=document.getElementById("historyContact").value,c=db.contacts.find(x=>x.id===id);const out=document.getElementById("historyOutput");if(out)out.innerHTML=c?`<h4>${esc(c.firstName+" "+c.lastName)}</h4>${(c.history||[]).map(h=>`<div class="list-item"><div>${esc(h.text)}<p>${esc(h.date)}</p></div></div>`).join("")||"No history yet."}`:"Choose a contact.";return}
+ if(b.id==="importBtn"||b.id==="importBtn2"){document.getElementById("csvFile").click();return}
+ if(b.id==="exportContacts"){exportContacts();return}
+ if(b.id==="backupBtn"){download("community-crm-backup.json",JSON.stringify(db,null,2),"application/json");return}
+ if(b.id==="resetBtn"){if(confirm("Reset this browser's CRM data to the original sample records? Export a backup first if needed.")){db=seedDB();saveDB();render();showNotice("Sample data restored.")}return}
+});
+document.getElementById("mainContent").addEventListener("input",e=>{if(["contactSearch","donationSearch"].includes(e.target.id)){const id=e.target.id,caret=e.target.selectionStart;render();const n=document.getElementById(id);if(n){n.focus();n.setSelectionRange(caret,caret)}}});
+document.getElementById("mainContent").addEventListener("change",e=>{if(["contactStatus","taskFilter"].includes(e.target.id))render()});
+document.getElementById("csvFile").addEventListener("change",e=>{importCSV(e.target.files[0]);e.target.value=""});
+document.getElementById("closeDialog").addEventListener("click",()=>document.getElementById("recordDialog").close());
+document.getElementById("cancelDialog").addEventListener("click",()=>document.getElementById("recordDialog").close());
+document.getElementById("recordForm").addEventListener("submit",e=>{
+ e.preventDefault();const module=currentModule,form=new FormData(e.target),data={};
+ for(const [k,v] of form.entries())data[k]=String(v).trim();
+ // VALIDATION: required HTML fields are checked by the browser; this layer checks domain rules.
+ if(module==="contacts"){
+  if(!data.firstName||!data.lastName){alert("First and last name are required.");return}
+  if(data.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)){alert("Enter a valid email address.");return}
+  if(data.email&&db.contacts.some(c=>c.email.toLowerCase()===data.email.toLowerCase()&&c.id!==editing)){alert("A contact with this email already exists.");return}
+  data.history=editing?(db.contacts.find(c=>c.id===editing).history||[]):[{date:today(),text:"Contact created"}];data.created=editing?(db.contacts.find(c=>c.id===editing).created||today()):today();
+ }
+ if(module==="memberships"){
+  if(data.renewalDate<data.startDate){alert("Renewal date cannot be before the start date.");return}
+  data.amount=Number(data.amount);data.history=editing?(db.memberships.find(x=>x.id===editing).history||[]):[{date:today(),text:"Membership created"}];
+ }
+ if(module==="donations"){data.amount=Number(data.amount);if(!Number.isFinite(data.amount)||data.amount<=0){alert("Donation amount must be greater than zero.");return}}
+ if(module==="tasks"&&!data.title){alert("Task title is required.");return}
+ const array=db[module],index=editing?array.findIndex(x=>x.id===editing):-1;
+ if(index>=0){const old=array[index];array[index]={...old,...data};if(module==="contacts")historyForContact(editing,"Contact record updated");if(module==="memberships"){data.history=old.history||[];array[index].history=data.history}}
+ else{array.push({id:uid(module.slice(0,-1)),...data})}
+ const name=module==="contacts"?(data.firstName+" "+data.lastName):module==="households"?data.name:module==="tasks"?data.title:module.slice(0,-1);
+ logActivity((editing?"Updated ":"Created ")+name);
+ document.getElementById("recordDialog").close();persistAndRender("Record saved successfully.");
+});
+</script>
+</body>
+</html>
