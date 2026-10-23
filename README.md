@@ -1,53 +1,37 @@
 # Community CRM
 
-A single-file browser demo CRM for community contacts, households, memberships, donations, tasks, reporting, archive/restore, and change history.
+A single-file browser CRM coursework demo. The main navigation now has eight distinct pages: **Dashboard, Contacts, Contact Details, Memberships, Donations, Tasks, Reports, and Login / Settings**.
 
-## Run the app
+## Run it
 1. Open [index.html](index.html) in Edge, Chrome, Firefox, or Safari.
-2. Sign in with one of the demo roles and passcode `demo123`.
-3. Try adding/editing a contact, searching, archiving/restoring, exporting a CSV/JSON backup, and importing a CSV.
+2. Sign in with Admin, Staff, or Viewer. All demo roles use passcode `demo123`.
+3. Use the eight navigation pages to explore the application.
 
-## Demo accounts
-- **Admin demo** — full demo UI access, including reset sample data.
-- **Staff demo** — create, edit, archive, restore and import records.
-- **Viewer demo** — read-only interface.
+## Page guide
+- **Dashboard:** summary metrics, recent activity, open tasks, and a shortcut to Contacts.
+- **Contacts:** add/edit contacts, validate required names and email format, prevent duplicate email addresses, search/filter, archive/restore.
+- **Contact Details:** select a contact to view their profile, household, tags, email permission, related memberships, donations, and tasks; open the contact editor from the profile.
+- **Memberships:** create/edit/search/archive membership records, validate renewal dates, and review plan/status.
+- **Donations:** create/edit/search/archive donations and view donation entries.
+- **Tasks:** create/edit/search/archive tasks and track due dates, assignees, related contacts, and status.
+- **Reports:** summary metrics, donation totals by fund, membership status breakdown, and CSV/JSON export.
+- **Login / Settings:** demo login roles, sign out, export a JSON backup, reset sample data, and view local change history.
 
-These role controls are deliberately a **coursework simulation only**. Because this app runs entirely in the browser, a user can bypass them using developer tools. It has no server-side authentication, server authorization, shared database, or secure audit trail. Never enter real sensitive personal, donor, or payment data.
+## Sample data
+The app initializes 20 sample contacts, 5 households, one membership, two donations, and one task. These are fictional records.
 
-## Implemented features
-- Dashboard totals for contacts, households, active memberships, donations, and open tasks.
-- Contact records with required first/last name, email format/uniqueness validation, phone, tags, notes, email permission, and optional household assignment.
-- Household records and household relationship display.
-- Membership records, date validation, one-year renewal action, and status.
-- Donation records and totals grouped by fund.
-- Task records and status.
-- Search across record fields, active/archived/all filters, and clear no-results feedback.
-- Archive/restore instead of hard-delete, plus a capped local change-history log with timestamp, demo user, action, record type and ID.
-- CSV contact import with header validation, malformed/invalid-row rejection, and duplicate skipping; CSV export for the current section and JSON backup export.
-- Resettable sample data: 20 contacts and 5 households, plus example membership, donations and task.
-- Responsive layout, visible labels, keyboard focus outlines, skip link, status messages, and confirmation prompts for archive/reset.
-- Comments/documentation describing data storage and the code paths that modify it.
+## Data storage and code notes
+- `db` is the in-memory JavaScript data model with `contacts`, `households`, `memberships`, `donations`, `tasks`, and `audit` arrays.
+- `load()` reads the `communityCRM.v2` JSON key from browser `localStorage`.
+- `submitRecord()` validates and creates/updates contact, membership, donation, and task records.
+- `persist()` writes changes and re-renders the app.
+- `log()` appends local change-history entries.
+- `renderDashboard()`, `renderContactProfile()`, `renderReports()`, and `renderSettings()` power the distinct pages.
+- `archive()` marks records archived rather than permanently deleting them.
+- `exportCSV()` and `exportJSON()` create local download files.
 
-## Where data is stored and changed
-- `db` is the in-memory JavaScript object containing arrays for contacts, households, memberships, donations, tasks, and audit entries.
-- `loadDB()` reads JSON from this browser's `localStorage` using key `communityCRM.v2`. It can migrate basic records from the earlier `communityCRM.v1` key.
-- `submitForm()` validates fields and updates or inserts records; duplicate emails, invalid emails, invalid dates, and invalid donation amounts are rejected before saving.
-- `persist()` writes the current state to `localStorage` and re-renders the interface. A browser storage failure shows a message.
-- `log()` records local audit entries for create/edit/archive/restore/import/login/reset events.
-- `render()`, `renderForm()`, and `visibleRows()` display the dashboard, form, and filtered records.
-- Browser-local storage is scoped to a browser profile/device. Clearing browser data may remove it; export a backup before resetting or clearing data.
+## Important limitations
+This is a browser-only demonstration, not a production CRM. The login and role controls are client-side UI simulations, not secure authentication or server-enforced permissions. Data is stored in the current browser's localStorage and does not sync across devices. The audit log can be edited by someone with browser developer tools. Do not enter real sensitive personal, donor, or payment information.
 
 ## Testing
-Use [TEST_RESULTS.md](TEST_RESULTS.md) as a test log. Run each test in your browser and enter actual results; do not claim tests passed unless you have personally verified them. Some rubric requirements such as real secure multi-user login, server-enforced permissions, and database transactions cannot be genuinely satisfied by a static browser-only app; these limitations are documented honestly.
-
-## Rubric checklist
-- [x] Multiple CRM sections, visible navigation, data persistence, sample data, documentation.
-- [x] Contact validation and duplicate prevention; household assignment; tags and email permission.
-- [x] Search, active/archive filters, archive/restore, local audit history.
-- [x] Membership renewal, donation report, tasks, CSV import/export and JSON backup.
-- [x] Keyboard focus indicators, labels, status messages, responsive layout.
-- [!] Login and roles are a client-side demonstration, not production security.
-- [ ] Manual browser testing and actual results still need to be completed.
-
-## AI assistance
-If your assignment requires an AI assistance statement, personalize it to truthfully describe the help you used and the changes you personally made.
+Use [TEST_RESULTS.md](TEST_RESULTS.md) to manually verify page navigation and core workflows. Record actual results after running the tests; don't mark tests passed without checking them.
