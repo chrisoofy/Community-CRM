@@ -71,6 +71,18 @@ document.querySelector('#login-form').onsubmit=e=>{e.preventDefault();if(documen
 function logout(){role=null;document.querySelector('#app').classList.add('hidden');document.querySelector('#login-page').classList.remove('hidden');document.querySelector('#header-user').textContent='';document.querySelector('#login-message').textContent='Signed out.'}
 document.querySelector('#logout').onclick=logout;document.querySelector('#settings-signout').onclick=logout;document.querySelector('#header-login').onclick=()=>{if(role){go('settings')}else{document.querySelector('#login-page').classList.remove('hidden');document.querySelector('#login-page').scrollIntoView({behavior:'smooth'})}};
 const mainTabs=[...document.querySelectorAll('[data-page][role="tab"]')];mainTabs.forEach(b=>b.onclick=()=>go(b.dataset.page));document.querySelector('.tabs').addEventListener('keydown',e=>{if(!e.target.matches('[role="tab"]'))return;const i=mainTabs.indexOf(e.target);let next=i;if(e.key==='ArrowRight')next=(i+1)%mainTabs.length;else if(e.key==='ArrowLeft')next=(i-1+mainTabs.length)%mainTabs.length;else if(e.key==='Home')next=0;else if(e.key==='End')next=mainTabs.length-1;else return;e.preventDefault();mainTabs[next].focus();go(mainTabs[next].dataset.page)});document.querySelectorAll('[data-goto]').forEach(b=>b.onclick=()=>go(b.dataset.goto));
+/* KEYBOARD BUTTON NAVIGATION: Left/Right Arrow moves focus between visible, enabled buttons.
+   Inputs, selects, date/month controls, textareas, and other non-button controls keep native arrow-key behavior. */
+document.addEventListener('keydown',e=>{
+ if(e.key!=='ArrowRight'&&e.key!=='ArrowLeft')return;
+ if(!e.target.matches('button')||e.target.matches('[role="tab"]'))return;
+ const visibleButtons=[...document.querySelectorAll('button:not(:disabled)')].filter(b=>b.getClientRects().length>0&&!b.closest('.hidden'));
+ if(visibleButtons.length<2)return;
+ const i=visibleButtons.indexOf(e.target);if(i<0)return;
+ e.preventDefault();
+ const next=(i+(e.key==='ArrowRight'?1:-1)+visibleButtons.length)%visibleButtons.length;
+ visibleButtons[next].focus();
+});
 document.querySelector('#new-contact').onclick=()=>{editing.contacts=null;renderForm('contacts');document.querySelector('#contact-form-title').scrollIntoView({behavior:'smooth'})};
 document.querySelector('#detail-contact-select').onchange=e=>renderContactProfile(e.target.value);
 for(const [type,prefix] of [['contacts','contact'],['memberships','membership'],['donations','donation'],['tasks','task']]){document.getElementById(prefix+'-search').oninput=renderTables;document.getElementById(prefix+'-filter').onchange=renderTables}
