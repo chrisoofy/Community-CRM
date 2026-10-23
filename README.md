@@ -18,7 +18,7 @@ A single-file browser CRM coursework demo. The main navigation now has eight dis
 - **Login / Settings:** demo login roles, sign out, export a JSON backup, reset sample data, and view local change history.
 
 ## Sample data
-The app initializes 20 sample contacts, 5 households, one membership, two donations, and one task. These are fictional records.
+The app initializes 29 active sample contacts plus one archived sample contact (C130), 5 households, one membership, two donations, and one task. These are fictional records. To view C130, open Contacts and change the Show filter to Archived or All.
 
 ## Data storage and code notes
 - `db` is the in-memory JavaScript data model with `contacts`, `households`, `memberships`, `donations`, `tasks`, and `audit` arrays.
