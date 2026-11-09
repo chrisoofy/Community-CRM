@@ -14,7 +14,11 @@ contacts-existing.csv — checks that a saved person is not replaced.
 The AI Request explains when to use each file. The dates in these files are
 practice dates for the app. They are not due dates for class.
 
-The JSON and CSV use some different column names. Map them correctly,
-not change the input files. Use a separate copy of data for resets and tests.
+The JSON and CSV use different column names where specified. Map them correctly;
+do not change the input files to hide an import bug. Use a separate copy of data
+for tests that reset data, force save errors, or restore backups. Fixed sample
+dates are test inputs, not assignment deadlines.
 
-PRACTICE DATE: October 15, 2026 (2026-10-15). Use this selected app date for the baseline counts in CRM 3–6. Do not change the computer clock.
+PRACTICE DATE: October 15, 2026 (2026-10-15). Use this selected app date for
+baseline counts in CRM 3–6. This is not a class deadline. Do not change the
+computer clock. Other selected dates give different counts.
