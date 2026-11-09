@@ -1,52 +1,56 @@
 # Community CRM
 
-A browser-based community CRM coursework project with contacts, households, memberships, donations, tasks, reports, CSV import/export, and file activity history.
+A browser-based community CRM coursework project. It links contacts, households, memberships and paid periods, donations, staff tasks, reports, CSV import/export, file activity history, and separate-copy backup restore.
 
 ## How to run this app
 
 - **Tools needed:** Microsoft Edge, Google Chrome, Firefox, or another modern browser.
-- **Install command:** None. This project has no package manager or external runtime dependency.
-- **Start command:** Open `index.html` from the project folder. In Edge on Windows, right-click `index.html` and choose **Open with → Microsoft Edge**.
-- **Browser address:** The local file address will look like `file:///.../Community-CRM/index.html`.
-- **Demo sign-in:** Select Admin, Staff, or Viewer. The demo passcode for each is `demo123`.
+- **Install command:** None. This is a single-file browser app with no npm packages or external runtime dependency.
+- **Start command:** Open `index.html` from the project folder. In Edge on Windows, right-click it and choose **Open with → Microsoft Edge**.
+- **Browser address:** The local address looks like `file:///.../Community-CRM/index.html`.
+- **Test accounts:** Choose Admin, Staff, or Viewer on the sign-in screen. All demo roles use the fake passcode `demo123`.
 
-## Practice data
+## Load the classroom practice data
 
-The `data/` folder contains the supplied classroom practice files with their original filenames and sample IDs:
+The app's explicit **Reset sample data** action loads the supplied, fake classroom baseline into the current browser. It is a separate, confirmed action; normal startup loads saved `communityCRM.v2` data and does not reseed over existing work. Export a JSON backup before resetting data you need to keep.
+
+The `data/` folder includes the original classroom practice filenames and values:
 
 - `crm-classroom-test-data.json` — 30 contacts, 5 households, 20 memberships, 20 donations, and 15 manual tasks.
-- `contacts-clean.csv`, `contacts-messy.csv`, `contacts-corrected.csv`, and `contacts-existing.csv` — the four contact import test files.
+- `contacts-clean.csv`, `contacts-messy.csv`, `contacts-corrected.csv`, and `contacts-existing.csv` — CSV import cases.
 - `README.txt` — practice-data notes.
 
-A new browser profile starts with the classroom dataset mapped into the CRM's internal fields. On first use, the app stores this initial dataset in that browser's `localStorage`. Normal startup does not replace existing saved browser data. **Reset sample data** replaces the current browser's data with the supplied classroom baseline; export a backup first if you need to keep changes.
+## CRM 6 integrated workflow
 
-## Contact CSV import
+Use **October 15, 2026** in the Memberships and Reports date controls. Sign in as Staff, then:
 
-Open **Contacts → Import contacts from CSV**. Choose a CSV, select **Preview**, review each row as **New**, **Duplicate**, or **Error**, then select **Import**. Cancel clears the preview without saving. Headers can be reordered but must contain exactly: `contact_id,name,email,phone,household,tags,notes,email_opt_in`.
+1. In Contacts, add ID `C900`, first name `Test`, last name `Builder`, email `test900@example.com`, no household, and email permission **Allowed**.
+2. In Memberships, add ID `M900`, select C900, choose **One person ($35)**, set start date to `2026-10-15`, payment status **Paid**, and payment code `FINAL-M900`. The end date is calculated as `2027-10-15`.
+3. Use Renew on M900. Enter payment code `FINAL-R900`, amount `35`, status **Paid**, and payment date `2026-10-15`. The second paid period is `2027-10-15` through `2028-10-15`; the first period and its payment remain in membership history.
+4. In Donations, add ID `D900`, donor C900, amount `12`, date `2026-10-15`, campaign `Campaign B`, payment method Cash, and payment code `FINAL-D900`.
+5. The donation creates a Thank-you task due `2026-10-22`. In Tasks, mark that task Complete.
+6. In Donations, set Campaign to `Campaign B` and leave the date range covering 2026. Export the visible donations CSV. It should include 11 rows totaling **$212**.
 
-The parser handles quoted commas and doubled quotes. Saved IDs are skipped before other row validation, IDs are case-sensitive, duplicate new IDs in a file are errors on every matching row, and emails are checked for validity and uniqueness without case sensitivity. Blank email permission is treated as false. If any row is an error, the whole file is blocked. The app stages new contacts and households together and writes them in one localStorage operation. A repeated corrected file adds zero contacts and records the import attempt.
+After the workflow, the baseline donation total is **$367** ($155 Campaign A and $212 Campaign B), with 13 active memberships and 15 people covered. Reusing `FINAL-M900`, `FINAL-R900`, or `FINAL-D900` is rejected as a duplicate payment code. Closing and reopening the same browser preserves the saved records.
 
-## Reports and downloads
+## Import and exports
 
-The Reports page calculates totals from saved records. Its default practice date is **October 15, 2026**. With the supplied practice data, the expected starting values are:
+Open Contacts → Import contacts from CSV. Choose a file, select Preview, review each row, and select Import only when there are no Error rows. Cancel clears the preview without saving. The CSV headers can be reordered but must contain exactly: `contact_id,name,email,phone,household,tags,notes,email_opt_in`.
 
-- Donations: **$355 total**, **$155 Campaign A**, **$200 Campaign B**
-- Active memberships: **12**
-- People covered: **14**
-- Overdue manual tasks: **6**
+The parser supports quoted commas and doubled quotes. Existing IDs are classified as Duplicate before validating the other columns; duplicate new IDs in the same file are errors on every matching row. Emails are valid and unique without case sensitivity. Blank email permission is false. If any row is an error, the whole file is blocked. Contacts and new households are staged together and saved in one localStorage operation. Replaying a corrected file adds zero contacts and records another import event.
 
-Change the report date or donation date range to recalculate. Donation start and end boundaries are inclusive; voided and archived donations are excluded. Overdue tasks must still be open and have a due date earlier than the selected date.
+Reports recalculate from saved records using their selected date and inclusive donation date-range controls. The October 15, 2026 classroom baseline is **$355 donations** ($155 Campaign A and $200 Campaign B), **12 active memberships**, **14 covered people**, and **6 overdue jobs**. Voided and archived donations are excluded.
 
-CSV export buttons are beside the matching contact, membership, donation, and task lists and export the records and displayed columns for the current table filters. The email permission list contains only active contacts with an email address and permission set to Yes. Admins can enable or disable Viewer CSV exports in Login / Settings. Viewer imports are always blocked. Imports and downloads are listed with the signed-in demo role, time, filename, and row count.
+CSV export buttons sit beside each corresponding on-screen table and export the rows and visible values for its current filters. The email permission list contains only active contacts with an email address and permission set to Yes. Admins can enable or disable Viewer CSV export. Viewer imports are always blocked. Import and download history records the user, time, filename, and row count.
 
-## Roles and data storage
+## Backups and roles
 
-- **Admin:** Can manage records, change the Viewer CSV export permission, and use JSON backup/restore.
-- **Staff:** Can manage records, import contacts, and export CSV data.
-- **Viewer:** Read-only. CSV exports work only when an Admin enables them. Viewers cannot import or change settings.
+- **Admin:** Can manage records and settings, control Viewer CSV export, and download/restore JSON backups.
+- **Staff:** Can manage records, import contacts, and export CSV files.
+- **Viewer:** Read-only. CSV export works only when an Admin enables it. Viewers cannot import.
 
-The app stores records in the current browser's `localStorage` under `communityCRM.v2`. Data does not sync across browsers or devices.
+The JSON backup includes contacts, households, memberships and all stored periods, membership payments/history, donations, tasks, audit history, file history, and settings. Restore writes the full data into a separate `communityCRM.restoreCopy.v1` localStorage copy and does not replace the original. The Admin can download that restored copy separately.
 
-## Important limitation
+## Data storage and security limitation
 
-This repository is a **single-file, browser-only demonstration**. Sign-in and role checks run in client-side JavaScript; there is no server, server-side request authorization, central database, or secure authentication. A person with browser developer tools can bypass client-side restrictions or edit local data. Do not store real personal, donor, payment, or other sensitive information in this demo.
+The app stores data in the current browser's `localStorage` under `communityCRM.v2`. It does not sync across devices. Sign-in and role checks run in client-side JavaScript. **There is no server, central database, or server-side authorization in this repository**, so browser tools can bypass the demo roles or edit local data. Do not use real personal, donor, or payment information.
