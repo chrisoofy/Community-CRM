@@ -45,7 +45,7 @@ CSV export buttons sit beside each corresponding on-screen table and export the 
 
 ## Backups and roles
 
-- **Admin:** Can manage records and settings, control Viewer CSV export, and download/restore JSON backups.
+- **Admin:** Can manage records and settings, change plan prices, control Viewer CSV export, and download/restore JSON backups. Price changes apply to new sales and renewals; earlier payment amounts remain in history.
 - **Staff:** Can manage records, import contacts, and export CSV files.
 - **Viewer:** Read-only. CSV export works only when an Admin enables it. Viewers cannot import.
 
