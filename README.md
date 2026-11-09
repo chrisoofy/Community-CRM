@@ -4,10 +4,10 @@ A browser-based community CRM coursework project. It links contacts, households,
 
 ## How to run this app
 
-- **Tools needed:** Microsoft Edge, Google Chrome, Firefox, or another modern browser.
-- **Install command:** None. This is a single-file browser app with no npm packages or external runtime dependency.
-- **Start command:** Open `index.html` from the project folder. In Edge on Windows, right-click it and choose **Open with → Microsoft Edge**.
-- **Browser address:** The local address looks like `file:///.../Community-CRM/index.html`.
+- **Browser-only option:** Open `index.html` from the project folder (in Edge, right-click and choose **Open with → Microsoft Edge**). This keeps the original single-file workflow and uses browser-side validation.
+- **Server-validation option (Windows):** Install Python 3, then double-click `start-crm.bat`. It starts `server.py` and opens `http://127.0.0.1:8765` in your browser. Contact and household name values are trimmed and blank/space-only names are rejected by the local server before the existing browser storage save happens.
+- **Files:** `index.html` remains available on GitHub and can still be opened directly. `server.py` and `start-crm.bat` are optional additions; no npm packages are required.
+- **Storage:** Both options continue to use the same browser `localStorage` data for this browser profile. The local server validates names; it does not add a central database or server-side user authorization.
 - **Test accounts:** Choose Admin, Staff, or Viewer on the sign-in screen. All demo roles use the fake passcode `demo123`.
 
 ## Load the classroom practice data
@@ -53,4 +53,4 @@ The JSON backup includes contacts, households, memberships and all stored period
 
 ## Data storage and security limitation
 
-The app stores data in the current browser's `localStorage` under `communityCRM.v2`. It does not sync across devices. Sign-in and role checks run in client-side JavaScript. **There is no server, central database, or server-side authorization in this repository**, so browser tools can bypass the demo roles or edit local data. Do not use real personal, donor, or payment information.
+The app stores data in the current browser's `localStorage` under `communityCRM.v2`. It does not sync across devices. Sign-in and role checks run in client-side JavaScript. The optional local server provides server-side name validation only; it is not a central database or server-side authorization system. Do not use real personal, donor, or payment information.
