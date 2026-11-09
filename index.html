@@ -130,9 +130,9 @@ T015|C115|Manual test task 15|2026-10-18|open`.split('\n').map(line=>{const [tid
  return {contacts,households,memberships,membershipPayments,membershipHistory:[],donations,tasks,audit:[],fileHistory:[],settings:{allowViewerExport:false}};
 }
 function load(){try{const defaults=seed(),v=JSON.parse(localStorage.getItem(KEY)||'null');return v?{...defaults,...v,membershipPayments:v.membershipPayments||defaults.membershipPayments,membershipHistory:v.membershipHistory||[],fileHistory:v.fileHistory||[],settings:{...defaults.settings,...v.settings}}:defaults}catch(e){return seed()}}
-let db=load(),role=null,currentPage='dashboard',editing={contacts:null,memberships:null,donations:null,tasks:null};
+let db=load(),role=null,currentPage='dashboard',editing={contacts:null,memberships:null,donations:null,tasks:null},contactImportPreview=null;
 const defs={contacts:{singular:'contact',fields:[['firstName','First name','text',true],['lastName','Last name','text',true],['email','Email','email',true],['phone','Phone','tel',false],['householdId','Household','household',false],['tags','Tags','text',false],['notes','Notes','text',false],['emailPermission','Email permission','boolean',false]],cols:['id','firstName','lastName','email','phone','householdId','tags','emailPermission','archived']},memberships:{singular:'membership',fields:[['contactId','Contact','contact',true],['plan','Plan','plan',true],['startDate','Start date','date',true],['renewalDate','Renewal date','date',true],['status','Status','membershipStatus',true],['paymentCode','Payment code','text',true],['paymentMethod','Payment method','paymentMethod',true],['paymentStatus','Payment status','paymentStatus',true]],cols:['id','contactId','plan','startDate','renewalDate','status','paymentCode','paymentMethod','paymentStatus','archived']},donations:{singular:'donation',fields:[['contactId','Donor','contact',true],['amount','Amount ($)','number',true],['date','Date','date',true],['fund','Campaign / cause','text',true],['paymentMethod','Payment method','text',true],['paymentCode','Payment code','text',true],['thanked','Thanked?','boolean',true],['notes','Notes','text',false]],cols:['id','contactId','amount','date','fund','paymentMethod','paymentCode','thanked','voided','archived']},tasks:{singular:'task',fields:[['contactId','Related contact','contact',true],['title','Task type / title','text',true],['assignedTo','Person in charge','text',true],['dueDate','Due date','date',true],['status','Status','taskStatus',true]],cols:['id','contactId','title','assignedTo','dueDate','status','archived']}};
-const canWrite=()=>role==='admin'||role==='staff',canAdmin=()=>role==='admin';
+const canWrite=()=>role==='admin'||role==='staff',canAdmin=()=>role==='admin',canExport=()=>role==='admin'||role==='staff'||(role==='viewer'&&db.settings?.allowViewerExport===true);
 function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function contactName(cid){const c=db.contacts.find(x=>x.id===cid);return c?c.firstName+' '+c.lastName+' ('+c.id+')':'Unknown contact'}
 function householdName(hid){return db.households.find(h=>h.id===hid)?.name||'—'}
@@ -148,7 +148,96 @@ function archive(type,rid,restore){if(!canWrite())return;const r=db[type].find(x
 function active(type){return db[type].filter(r=>!r.archived)}
 function filtered(type,prefix){const q=document.getElementById(prefix+'-search').value.trim().toLowerCase(),filter=document.getElementById(prefix+'-filter').value;return db[type].filter(r=>(filter==='all'||(filter==='archived'?r.archived:!r.archived))&&Object.entries(r).map(([k,v])=>k==='contactId'?contactName(v):k==='householdId'?householdName(v):v).join(' ').toLowerCase().includes(q))}
 function val(k,v){if(k==='contactId')return contactName(v);if(k==='householdId')return householdName(v);if(k==='emailPermission')return v?'Allowed':'Not allowed';if(k==='amount')return '$'+Number(v||0).toFixed(2);return v??''}
-function table(type,rows,container){const cols=defs[type].cols.filter(c=>c!=='archived');if(!rows.length){document.getElementById(container).innerHTML='<p class="muted">No records match this view.</p>';return}document.getElementById(container).innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+esc(({id:'ID',contactId:'Contact',householdId:'Household'}[c]||c))+'</th>').join('')+'<th>Actions</th></tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(type==='tasks'&&c==='status'&&r.status==='Open'&&r.dueDate<(document.getElementById('membership-as-of')?.value||'2026-10-15')?'Overdue (Open)':val(c,r[c]))+'</td>').join('')+'<td>'+(type==='contacts'?'<button class="secondary" data-details="'+esc(r.id)+'">Details</button> ':'')+(canWrite()?(r.archived?'<button data-restore="'+type+'|'+esc(r.id)+'">Restore</button>':'<button data-edit="'+type+'|'+esc(r.id)+'">Edit</button> '+(type==='memberships'?'<button data-renew="'+esc(r.id)+'">Renew</button> ':'')+(type==='donations'&&!r.voided?'<button data-void="'+esc(r.id)+'">Void</button> ':'')+(type==='tasks'&&r.status!=='Complete'&&r.status!=='Cancelled'?'<button data-complete="'+esc(r.id)+'">Complete</button> ':'')+'<button class="danger" data-archive="'+type+'|'+esc(r.id)+'">Archive</button>'):'Read only')+'</td></tr>').join('')+'</tbody></table>'}
+function tableCellText(type,r,c){if(type==='tasks'&&c==='status'&&String(r.status||'').toLowerCase()==='open'&&r.dueDate<(document.getElementById('membership-as-of')?.value||'2026-10-15'))return 'Overdue (Open)';return val(c,r[c])}
+function table(type,rows,container){const cols=defs[type].cols.filter(c=>c!=='archived');if(!rows.length){document.getElementById(container).innerHTML='<p class="muted">No records match this view.</p>';return}document.getElementById(container).innerHTML='<table><thead><tr>'+cols.map(c=>'<th>'+esc(({id:'ID',contactId:'Contact',householdId:'Household'}[c]||c))+'</th>').join('')+'<th>Actions</th></tr></thead><tbody>'+rows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(tableCellText(type,r,c))+'</td>').join('')+'<td>'+(type==='contacts'?'<button class="secondary" data-details="'+esc(r.id)+'">Details</button> ':'')+(canWrite()?(r.archived?'<button data-restore="'+type+'|'+esc(r.id)+'">Restore</button>':'<button data-edit="'+type+'|'+esc(r.id)+'">Edit</button> '+(type==='memberships'?'<button data-renew="'+esc(r.id)+'">Renew</button> ':'')+(type==='donations'&&!r.voided?'<button data-void="'+esc(r.id)+'">Void</button> ':'')+(type==='tasks'&&r.status!=='Complete'&&r.status!=='Cancelled'?'<button data-complete="'+esc(r.id)+'">Complete</button> ':'')+'<button class="danger" data-archive="'+type+'|'+esc(r.id)+'">Archive</button>'):'Read only')+'</td></tr>').join('')+'</tbody></table>'}
+
+function parseContactCSV(text){
+ const records=[];let row=[],field='',quoted=false,afterQuote=false;
+ const pushField=()=>{row.push(field);field='';afterQuote=false};
+ const pushRow=()=>{pushField();if(row.some(v=>String(v).trim()!==''))records.push(row);row=[]};
+ for(let i=0;i<text.length;i++){
+  const ch=text[i];
+  if(quoted){if(ch==='"'&&text[i+1]==='"'){field+='"';i++}else if(ch==='"'){quoted=false;afterQuote=true}else field+=ch;continue}
+  if(afterQuote){if(ch===','){pushField();continue}if(ch==='\r'||ch==='\n'){pushRow();if(ch==='\r'&&text[i+1]==='\n')i++;continue}if(ch===' '||ch==='\t')continue;return {error:'Unexpected character after a quoted CSV value at character '+(i+1)+'.'}}
+  if(ch==='"'){if(field.trim()!=='')return {error:'Unexpected quote inside an unquoted CSV value at character '+(i+1)+'.'};field='';quoted=true;continue}
+  if(ch===','){pushField();continue}
+  if(ch==='\r'||ch==='\n'){pushRow();if(ch==='\r'&&text[i+1]==='\n')i++;continue}
+  field+=ch;
+ }
+ if(quoted)return {error:'The CSV ends inside a quoted value.'};
+ if(field!==''||row.length||afterQuote)pushRow();
+ return {records};
+}
+const CONTACT_CSV_HEADERS=['contact_id','name','email','phone','household','tags','notes','email_opt_in'];
+function buildContactImportPreview(csvText,fileName){
+ const parsed=parseContactCSV(csvText);if(parsed.error)return {fileName,csvText,error:parsed.error,rows:[]};
+ if(!parsed.records.length)return {fileName,csvText,error:'The CSV is empty.',rows:[]};
+ const headers=parsed.records[0].map(h=>String(h).trim()),duplicates=headers.filter((h,i)=>headers.indexOf(h)!==i),missing=CONTACT_CSV_HEADERS.filter(h=>!headers.includes(h)),extra=headers.filter(h=>!CONTACT_CSV_HEADERS.includes(h));
+ if(duplicates.length||missing.length||extra.length||headers.length!==CONTACT_CSV_HEADERS.length){
+  const why=[];if(duplicates.length)why.push('Repeated headers: '+[...new Set(duplicates)].join(', '));if(missing.length)why.push('Missing headers: '+missing.join(', '));if(extra.length)why.push('Extra headers: '+extra.join(', '));
+  return {fileName,csvText,error:why.join('. ')||'The header row must contain the eight required columns exactly once.',rows:[]};
+ }
+ const index=Object.fromEntries(headers.map((h,i)=>[h,i])),sourceRows=parsed.records.slice(1);
+ if(!sourceRows.length)return {fileName,csvText,error:'The CSV contains headers but no contact rows.',rows:[]};
+ const ids=sourceRows.map(cells=>String(cells[index.contact_id]??'').trim()),savedIds=new Set(db.contacts.map(c=>String(c.id))),idCounts={};
+ ids.forEach(idValue=>{if(idValue&&!savedIds.has(idValue))idCounts[idValue]=(idCounts[idValue]||0)+1});
+ const newEmails={};sourceRows.forEach((cells,i)=>{const idValue=ids[i];if(!idValue||savedIds.has(idValue)||idCounts[idValue]>1)return;const email=String(cells[index.email]??'').trim().toLowerCase();if(email)newEmails[email]=(newEmails[email]||0)+1});
+ const savedEmails=new Map();db.contacts.forEach(c=>{const email=String(c.email||'').trim().toLowerCase();if(email&&!savedEmails.has(email))savedEmails.set(email,c.id)});
+ const rows=sourceRows.map((cells,i)=>{
+  const contactId=ids[i],name=String(cells[index.name]??'').trim();
+  if(contactId&&savedIds.has(contactId))return {rowNumber:i+2,contactId,name,status:'Duplicate',reason:'This contact ID is already saved. Existing details and history were left unchanged.'};
+  if(contactId&&idCounts[contactId]>1)return {rowNumber:i+2,contactId,name,status:'Error',reason:'This new contact ID appears more than once in this file; every row with this ID is blocked.'};
+  const errors=[];if(cells.length!==headers.length)errors.push('This row has '+cells.length+' values; expected '+headers.length+'.');
+  if(!contactId)errors.push('Contact ID is required.');if(!name)errors.push('Name is required.');
+  const email=String(cells[index.email]??'').trim(),emailKey=email.toLowerCase();
+  if(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))errors.push('Email address is invalid.');
+  if(emailKey&&savedEmails.has(emailKey))errors.push('Email is already used by contact '+savedEmails.get(emailKey)+'.');
+  if(emailKey&&newEmails[emailKey]>1)errors.push('Email is repeated in this file.');
+  const consent=String(cells[index.email_opt_in]??'').trim().toLowerCase();if(consent!==''&&consent!=='true'&&consent!=='false')errors.push('Email permission must be true, false, or blank.');
+  return {rowNumber:i+2,contactId,name,status:errors.length?'Error':'New',reason:errors.join(' ')||'Ready to add.'};
+ });
+ return {fileName,csvText,error:'',rows};
+}
+function renderContactImportPreview(){
+ const message=document.getElementById('contact-import-message'),tableEl=document.getElementById('contact-import-preview-table'),button=document.getElementById('contact-import-start');
+ if(!contactImportPreview){message.textContent='Choose a CSV file, then select Preview.';tableEl.innerHTML='';button.disabled=true;return}
+ const p=contactImportPreview,errors=p.rows.filter(r=>r.status==='Error').length,duplicates=p.rows.filter(r=>r.status==='Duplicate').length,added=p.rows.filter(r=>r.status==='New').length;
+ message.textContent=p.error?'Preview blocked: '+p.error:added+' new, '+duplicates+' duplicate, '+errors+' error row(s). '+(errors?'Import is blocked until every error is fixed.':'No validation errors; Import is available.');
+ tableEl.innerHTML=p.error?'<p class="error">'+esc(p.error)+'</p>':p.rows.length?'<table><thead><tr><th>CSV row</th><th>Contact ID</th><th>Name</th><th>Preview</th><th>Why</th></tr></thead><tbody>'+p.rows.map(row=>'<tr><td>'+row.rowNumber+'</td><td>'+esc(row.contactId)+'</td><td>'+esc(row.name)+'</td><td><strong>'+esc(row.status)+'</strong></td><td>'+esc(row.reason)+'</td></tr>').join('')+'</tbody></table>':'<p>No contact rows found.</p>';
+ button.disabled=!!p.error||errors>0||!canWrite();
+}
+async function previewContactImport(){
+ if(!canWrite()){notify('Viewers cannot import contact files.',true);return}
+ const file=document.getElementById('contact-import-file').files[0];if(!file){notify('Choose a CSV file before previewing.',true);return}
+ try{const csvText=await file.text();contactImportPreview=buildContactImportPreview(csvText,file.name);renderContactImportPreview()}catch(e){contactImportPreview={fileName:file.name,csvText:'',error:'The selected file could not be read.',rows:[]};renderContactImportPreview()}
+}
+function cancelContactImport(){contactImportPreview=null;document.getElementById('contact-import-file').value='';document.getElementById('contact-import-message').textContent='Preview cancelled. No records were saved.';document.getElementById('contact-import-preview-table').innerHTML='';document.getElementById('contact-import-start').disabled=true}
+function addFileHistory(action,fileName,rowCount,details){
+ const time=new Date().toISOString(),entry={time,user:role||'system',action,fileName,rowCount,details:details||''};
+ db.fileHistory=db.fileHistory||[];db.fileHistory.unshift(entry);db.fileHistory=db.fileHistory.slice(0,100);log(action,'file',fileName,String(rowCount)+' row(s) '+(details||''));
+ try{localStorage.setItem(KEY,JSON.stringify(db));renderAll();return true}catch(e){db.fileHistory.shift();notify('The file operation occurred, but its history could not be saved.',true);return false}
+}
+function importContacts(){
+ if(!canWrite()){notify('Viewers cannot import contact files.',true);return}
+ if(!contactImportPreview){notify('Preview a contact file before importing.',true);return}
+ const fresh=buildContactImportPreview(contactImportPreview.csvText,contactImportPreview.fileName),errors=fresh.rows.filter(r=>r.status==='Error');
+ if(fresh.error||errors.length){contactImportPreview=fresh;renderContactImportPreview();notify('Import blocked. Fix every error and preview the corrected file.',true);return}
+ const parsed=parseContactCSV(fresh.csvText),headers=parsed.records[0].map(h=>String(h).trim()),ix=Object.fromEntries(headers.map((h,i)=>[h,i]));
+ const next=JSON.parse(JSON.stringify(db)),now=new Date().toISOString(),added=[];
+ for(let i=0;i<parsed.records.length-1;i++){
+  const cells=parsed.records[i+1],preview=fresh.rows[i];if(preview.status!=='New')continue;
+  const idValue=String(cells[ix.contact_id]).trim(),name=String(cells[ix.name]).trim(),split=name.indexOf(' '),householdId=String(cells[ix.household]??'').trim();
+  if(householdId&&!next.households.some(h=>h.id===householdId))next.households.push({id:householdId,name:householdId,address:'',notes:'Imported with contacts from '+fresh.fileName,archived:false});
+  next.contacts.push({id:idValue,firstName:split<0?name:name.slice(0,split),lastName:split<0?'':name.slice(split+1),email:String(cells[ix.email]??'').trim().toLowerCase(),phone:String(cells[ix.phone]??'').trim(),householdId,tags:String(cells[ix.tags]??'').trim(),notes:String(cells[ix.notes]??'').trim(),emailPermission:String(cells[ix.email_opt_in]??'').trim().toLowerCase()==='true',archived:false,createdAt:now,updatedAt:now});
+  added.push(idValue);
+ }
+ const entry={time:now,user:role,action:'Import',fileName:fresh.fileName,rowCount:added.length,sourceRows:fresh.rows.length,details:added.length+' new contact(s) added'};
+ next.fileHistory=[entry,...(next.fileHistory||[])].slice(0,100);
+ next.audit=[{time:now,user:role,action:'IMPORT',type:'contacts',recordId:fresh.fileName,details:added.length+' rows added from '+fresh.rows.length+' source rows'},...(next.audit||[])].slice(0,300);
+ const oldRaw=localStorage.getItem(KEY);
+ try{localStorage.setItem(KEY,JSON.stringify(next));db=next;contactImportPreview=null;document.getElementById('contact-import-file').value='';renderAll();renderContactImportPreview();notify('Import saved. '+added.length+' new contact(s) added; '+(fresh.rows.length-added.length)+' existing duplicate(s) skipped.')}
+ catch(e){try{if(oldRaw===null)localStorage.removeItem(KEY);else localStorage.setItem(KEY,oldRaw)}catch(rollbackError){}notify('Import failed while saving. No new contacts or households were kept; fix the problem and retry.',true)}
+}
 function donationRows(){const campaign=(document.getElementById('donation-campaign')?.value||'').trim().toLowerCase(),from=(document.getElementById('donation-from')?.value||''),to=(document.getElementById('donation-to')?.value||'');return filtered('donations','donation').filter(d=>(!campaign||(d.fund||'').toLowerCase()===campaign)&&(!from||d.date>=from)&&(!to||d.date<=to))}
 function donationTotal(rows){return rows.filter(d=>!d.voided&&!d.archived).reduce((n,d)=>n+Number(d.amount||0),0)}
 function renderDonationTotal(rows){const el=document.getElementById('donation-total');if(el)el.textContent='Filtered donation total (voids excluded): $'+donationTotal(rows).toFixed(2)}
@@ -165,15 +254,51 @@ function renewMembership(mid){if(!canWrite()){notify('Read-only account.',true);
 function validISODate(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return false;const d=new Date(v+'T00:00:00Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===v}
 function voidDonation(did){if(!canWrite())return;const d=db.donations.find(x=>x.id===did);if(!d||d.voided||!confirm('Void this donation?'))return;d.voided=true;d.voidedAt=new Date().toISOString();d.voidedBy=role;db.tasks.filter(t=>t.eventKey==='thankyou:'+did&&t.status==='Open').forEach(t=>{t.status='Cancelled';t.cancelledAt=new Date().toISOString();t.cancelledBy=role;log('CANCEL','task',t.id,'Thank-you task cancelled because donation was voided')});log('VOID','donation',did,'Voided gift');persist()}
 function completeTask(tid){if(!canWrite())return;const t=db.tasks.find(x=>x.id===tid&&!x.archived);if(!t||t.status==='Complete'||t.status==='Cancelled')return;t.status='Complete';t.completedAt=new Date().toISOString();t.completedBy=role;log('COMPLETE','task',tid,t.title);persist()}
-function createBackup(){if(!canAdmin())return;download('community-crm-backup.json',JSON.stringify(db,null,2),'application/json')}
+function createBackup(){if(!canAdmin())return;const count=['contacts','households','memberships','donations','tasks'].reduce((n,k)=>n+(db[k]||[]).length,0);download('community-crm-backup.json',JSON.stringify(db,null,2),'application/json');addFileHistory('Download','community-crm-backup.json',count,'Admin backup records')}
 async function restoreBackupCopy(){if(!canAdmin())return;const f=document.getElementById('backup-file').files[0];if(!f)return;try{const c=JSON.parse(await f.text());if(!c.contacts||!c.memberships||!c.donations||!c.tasks)throw Error('invalid');localStorage.setItem('communityCRM.restoreCopy.v1',JSON.stringify(c));document.getElementById('backup-message').textContent='Restored as separate copy; original unchanged.'}catch(e){document.getElementById('backup-message').textContent='Invalid backup; no changes made.'}}
 function renderDashboard(){const contacts=active('contacts'),members=active('memberships'),donations=active('donations'),tasks=active('tasks');document.getElementById('stats').innerHTML=[['Active contacts',contacts.length],['Households',active('households').length],['Active memberships',members.filter(m=>m.status==='Active').length],['Total donations','$'+donationTotal(donations).toFixed(2)],['Open tasks',tasks.filter(t=>t.status!=='Complete'&&t.status!=='Cancelled').length]].map(([k,v])=>'<div class="stat"><span>'+k+'</span><strong>'+esc(v)+'</strong></div>').join('');document.getElementById('recent-activity').innerHTML=db.audit.length?'<ul>'+db.audit.slice(0,6).map(a=>'<li>'+esc(new Date(a.time).toLocaleString())+' — '+esc(a.action)+' '+esc(a.type)+' '+esc(a.recordId)+' ('+esc(a.user)+')</li>').join('')+'</ul>':'<p class="muted">Activity appears here after you make changes.</p>';const todo=tasks.filter(t=>t.status!=='Complete'&&t.status!=='Cancelled').slice(0,6);document.getElementById('dashboard-tasks').innerHTML=todo.length?'<ul>'+todo.map(t=>'<li>'+esc(t.title)+' — due '+esc(t.dueDate||'not set')+' ('+esc(t.status)+')</li>').join('')+'</ul>':'<p class="muted">No open tasks.</p>'}
-function renderReports(){const cs=active('contacts'),ms=active('memberships'),ds=active('donations'),ts=active('tasks'),total=donationTotal(ds);document.getElementById('report-stats').innerHTML=[['Contacts',cs.length],['Households',active('households').length],['Memberships',ms.length],['Donations total','$'+total.toFixed(2)],['Tasks completed',ts.filter(t=>t.status==='Complete').length]].map(([k,v])=>'<div class="stat"><span>'+k+'</span><strong>'+esc(v)+'</strong></div>').join('');const funds={};ds.filter(d=>!d.voided&&!d.archived).forEach(d=>funds[d.fund||'Unspecified']=(funds[d.fund||'Unspecified']||0)+Number(d.amount||0));document.getElementById('fund-report').innerHTML=Object.keys(funds).length?'<ul>'+Object.entries(funds).map(([k,v])=>'<li>'+esc(k)+': <strong>$'+v.toFixed(2)+'</strong></li>').join('')+'</ul>':'<p>No donations yet.</p>';const statuses={};ms.forEach(m=>statuses[m.status]=(statuses[m.status]||0)+1);document.getElementById('membership-report').innerHTML=Object.keys(statuses).length?'<ul>'+Object.entries(statuses).map(([k,v])=>'<li>'+esc(k)+': '+v+'</li>').join('')+'</ul>':'<p>No memberships yet.</p>'}
-function renderSettings(){document.getElementById('session-info').textContent='Signed in as '+role+' demo. '+(role==='viewer'?'Read-only access.':role==='staff'?'Staff demo permissions.':'Admin demo permissions.');document.getElementById('audit-list').innerHTML=db.audit.length?'<div style="max-height:260px;overflow:auto"><ul>'+db.audit.slice(0,30).map(a=>'<li>'+esc(new Date(a.time).toLocaleString())+' — '+esc(a.user)+' '+esc(a.action)+' '+esc(a.type)+' '+esc(a.recordId)+': '+esc(a.details)+'</li>').join('')+'</ul></div>':'<p class="muted">No changes recorded yet.</p>'}
-function renderAll(){renderDashboard();renderTables();refreshDetailSelect();if(currentPage==='reports')renderReports();if(currentPage==='settings')renderSettings()}
-function download(name,body,type){const u=URL.createObjectURL(new Blob([body],{type})),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
-function exportJSON(){download('community-crm-backup.json',JSON.stringify(db,null,2),'application/json')}
-function exportCSV(type){const cols=defs[type].cols,rows=db[type];const cell=v=>'"'+String(v??'').replace(/"/g,'""')+'"';download('community-crm-'+type+'.csv',[cols.join(','),...rows.map(r=>cols.map(k=>cell(r[k])).join(','))].join('\r\n'),'text/csv')}
+function reportData(){
+ const asOf=document.getElementById('report-as-of')?.value||'2026-10-15',from=document.getElementById('report-from')?.value||'',to=document.getElementById('report-to')?.value||'';
+ const gifts=active('donations').filter(d=>!d.voided&&(!from||d.date>=from)&&(!to||d.date<=to));
+ const memberRows=active('memberships').map(m=>({m,state:memberState(m,asOf)})),activeRows=memberRows.filter(x=>x.state==='Active'||x.state==='Ending soon');
+ const people=activeRows.reduce((n,x)=>n+Number(x.m.peopleCovered||((x.m.plan||'').startsWith('Family')?2:1)),0);
+ const overdue=active('tasks').filter(t=>!['complete','cancelled'].includes(String(t.status||'').toLowerCase())&&t.dueDate&&t.dueDate<asOf);
+ return {asOf,from,to,gifts,total:donationTotal(gifts),campaignA:donationTotal(gifts.filter(d=>d.fund==='Campaign A')),campaignB:donationTotal(gifts.filter(d=>d.fund==='Campaign B')),activeMemberships:activeRows.length,peopleCovered:people,overdue:overdue.length,memberRows};
+}
+function renderReports(){
+ const data=reportData(),rangeInvalid=data.from&&data.to&&data.from>data.to;
+ if(rangeInvalid){document.getElementById('report-stats').innerHTML='<p class="error">The donation start date must be on or before the end date.</p>';document.getElementById('fund-report').innerHTML='';document.getElementById('membership-report').innerHTML='';return}
+ const cs=active('contacts'),stats=[['Active contacts',cs.length],['Households',active('households').length],['Donations total','$'+data.total.toFixed(2)],['Campaign A','$'+data.campaignA.toFixed(2)],['Campaign B','$'+data.campaignB.toFixed(2)],['Active memberships',data.activeMemberships],['People covered',data.peopleCovered],['Overdue jobs',data.overdue]];
+ document.getElementById('report-stats').innerHTML=stats.map(([k,v])=>'<div class="stat"><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>').join('');
+ const funds={};data.gifts.forEach(d=>funds[d.fund||'Unspecified']=(funds[d.fund||'Unspecified']||0)+Number(d.amount||0));
+ document.getElementById('fund-report').innerHTML=Object.keys(funds).length?'<ul>'+Object.entries(funds).map(([k,v])=>'<li>'+esc(k)+': <strong>$'+v.toFixed(2)+'</strong></li>').join('')+'</ul>':'<p>No donations in this date range.</p>';
+ const statuses={};data.memberRows.forEach(x=>statuses[x.state]=(statuses[x.state]||0)+1);
+ document.getElementById('membership-report').innerHTML=Object.keys(statuses).length?'<ul>'+Object.entries(statuses).map(([k,v])=>'<li>'+esc(k)+': '+v+'</li>').join('')+'</ul>':'<p>No memberships yet.</p>';
+}
+function renderSettings(){document.getElementById('session-info').textContent='Signed in as '+role+' demo. '+(role==='viewer'?'Read-only access.':role==='staff'?'Staff demo permissions.':'Admin demo permissions.');const viewerPanel=document.getElementById('viewer-export-settings'),viewerToggle=document.getElementById('viewer-export-allowed');if(viewerPanel)viewerPanel.hidden=!canAdmin();if(viewerToggle){viewerToggle.checked=!!db.settings?.allowViewerExport;viewerToggle.disabled=!canAdmin()}document.getElementById('file-history-list').innerHTML=(db.fileHistory||[]).length?'<ul>'+(db.fileHistory||[]).slice(0,50).map(x=>'<li>'+esc(new Date(x.time).toLocaleString())+' — '+esc(x.user)+' '+esc(x.action)+' '+esc(x.fileName)+': '+esc(x.rowCount)+' row(s)'+(x.sourceRows!==undefined?' from '+esc(x.sourceRows)+' source rows':'')+'</li>').join('')+'</ul>':'<p class="muted">No file imports or downloads recorded yet.</p>';document.getElementById('audit-list').innerHTML=db.audit.length?'<div style="max-height:260px;overflow:auto"><ul>'+db.audit.slice(0,30).map(a=>'<li>'+esc(new Date(a.time).toLocaleString())+' — '+esc(a.user)+' '+esc(a.action)+' '+esc(a.type)+' '+esc(a.recordId)+': '+esc(a.details)+'</li>').join('')+'</ul></div>':'<p class="muted">No changes recorded yet.</p>'}
+function renderAll(){renderDashboard();renderTables();refreshDetailSelect();if(currentPage==='reports')renderReports();if(currentPage==='settings')renderSettings();const importPanel=document.getElementById('contact-import-panel');if(importPanel)importPanel.hidden=!canWrite();document.querySelectorAll('[data-export],#email-list-export,#report-export').forEach(b=>b.disabled=!canExport());document.querySelectorAll('#report-json,#settings-export,#settings-export2').forEach(b=>b.disabled=!canAdmin())}
+function download(name,body,type){const u=URL.createObjectURL(new Blob([body],{type})),a=document.createElement('a');a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);return true}
+function csvCell(value){return '"'+String(value??'').replace(/"/g,'""')+'"'}
+function exportJSON(){if(!canAdmin()){notify('Only an Admin may download a JSON backup.',true);return}const count=['contacts','households','memberships','donations','tasks'].reduce((n,k)=>n+(db[k]||[]).length,0);download('community-crm-backup.json',JSON.stringify(db,null,2),'application/json');addFileHistory('Download','community-crm-backup.json',count,'JSON backup records')}
+function exportCSV(type){
+ if(!canExport()){notify('This role is not allowed to export records until an Admin grants permission.',true);return}
+ const prefix={contacts:'contact',memberships:'membership',donations:'donation',tasks:'task'}[type];if(!prefix||!defs[type])return;
+ const rows=filtered(type,prefix),cols=defs[type].cols.filter(c=>c!=='archived'),labels={id:'ID',contactId:'Contact',householdId:'Household'};
+ const csv=[cols.map(c=>csvCell(labels[c]||c)).join(','),...rows.map(row=>cols.map(c=>csvCell(tableCellText(type,row,c))).join(','))].join('\r\n');
+ const fileName='community-crm-'+type+'.csv';download(fileName,csv,'text/csv');addFileHistory('Download',fileName,rows.length,'CSV rows shown in the current table view');
+}
+function exportEmailList(){
+ if(!canExport()){notify('Viewer export permission has not been enabled by an Admin.',true);return}
+ const rows=active('contacts').filter(c=>String(c.email||'').trim()&&c.emailPermission===true);
+ const csv=[['ID','Name','Email'].map(csvCell).join(','),...rows.map(c=>[c.id,(c.firstName+' '+c.lastName).trim(),c.email].map(csvCell).join(','))].join('\r\n');
+ download('community-crm-email-permission-list.csv',csv,'text/csv');addFileHistory('Download','community-crm-email-permission-list.csv',rows.length,'Only contacts with an email address and permission set to Yes');
+}
+function exportReportCSV(){
+ if(!canExport()){notify('This role is not allowed to export reports.',true);return}
+ const d=reportData();if(d.from&&d.to&&d.from>d.to){notify('The donation start date must be on or before the end date.',true);return}
+ const rows=[['Metric','Value'],['As of date',d.asOf],['Donation from',d.from||'All dates'],['Donation to',d.to||'All dates'],['Donation total',d.total.toFixed(2)],['Campaign A',d.campaignA.toFixed(2)],['Campaign B',d.campaignB.toFixed(2)],['Active memberships',d.activeMemberships],['People covered',d.peopleCovered],['Overdue jobs',d.overdue]];
+ download('community-crm-report.csv',rows.map(r=>r.map(csvCell).join(',')).join('\r\n'),'text/csv');addFileHistory('Download','community-crm-report.csv',rows.length-1,'Report metric rows');
+}
 function resetData(){if(!canAdmin()){notify('Only the Admin demo can reset sample data.',true);return}if(!confirm('Replace current local data with sample data? Export a backup first.'))return;db=seed();log('RESET','database','','Sample data restored');try{localStorage.setItem(KEY,JSON.stringify(db));renderAll();notify('Sample data restored.')}catch(e){notify('Could not save reset data.',true)}}
 document.querySelector('#login-form').onsubmit=e=>{e.preventDefault();if(document.querySelector('#login-pass').value!=='demo123'){document.querySelector('#login-message').textContent='Sign-in failed. Try the demo passcode shown above.';return}role=document.querySelector('#login-role').value;document.querySelector('#login-pass').value='';document.querySelector('#login-page').classList.add('hidden');document.querySelector('#app').classList.remove('hidden');document.querySelector('#header-user').textContent=role+' demo';log('LOGIN','session','',role+' signed in');try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}go('dashboard');renderAll()};
 function logout(){role=null;document.querySelector('#app').classList.add('hidden');document.querySelector('#login-page').classList.remove('hidden');document.querySelector('#header-user').textContent='';document.querySelector('#login-message').textContent='Signed out.'}
@@ -196,7 +321,7 @@ document.querySelector('#detail-contact-select').onchange=e=>renderContactProfil
 for(const [type,prefix] of [['contacts','contact'],['memberships','membership'],['donations','donation'],['tasks','task']]){document.getElementById(prefix+'-search').oninput=renderTables;document.getElementById(prefix+'-filter').onchange=renderTables}
 document.querySelector('#clear-contact-search').onclick=()=>{document.querySelector('#contact-search').value='';document.querySelector('#contact-filter').value='active';renderTables()};
 document.querySelector('#settings-export').onclick=exportJSON;document.querySelector('#settings-export2').onclick=exportJSON;document.querySelector('#report-json').onclick=exportJSON;document.querySelector('#settings-reset').onclick=resetData;document.querySelector('#settings-reset2').onclick=resetData;
-document.querySelectorAll('[data-export]').forEach(b=>b.onclick=()=>exportCSV(b.dataset.export));document.querySelector('#report-export').onclick=()=>{const rows=[['Report','Value'],['Active contacts',active('contacts').length],['Active households',active('households').length],['Active memberships',active('memberships').length],['Donation total',donationTotal(active('donations')).toFixed(2)],['Open tasks',active('tasks').filter(t=>t.status!=='Complete'&&t.status!=='Cancelled').length]];download('community-crm-report.csv',rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n'),'text/csv')};
-for(const fid of ['donation-campaign','donation-from','donation-to'])document.getElementById(fid).addEventListener('input',renderTables);document.getElementById('membership-as-of').addEventListener('change',renderMembershipExtras);document.getElementById('backup-create').onclick=createBackup;document.getElementById('backup-restore').onclick=restoreBackupCopy;document.getElementById('backup-create').hidden=!canAdmin();document.getElementById('backup-restore').hidden=!canAdmin();document.getElementById('backup-file').closest('label').hidden=!canAdmin();for(const t of ['contacts','memberships','donations','tasks'])renderForm(t);
+document.querySelectorAll('[data-export]').forEach(b=>b.onclick=()=>exportCSV(b.dataset.export));document.querySelector('#email-list-export').onclick=exportEmailList;document.querySelector('#report-export').onclick=exportReportCSV;
+for(const fid of ['donation-campaign','donation-from','donation-to'])document.getElementById(fid).addEventListener('input',renderTables);document.getElementById('membership-as-of').addEventListener('change',renderMembershipExtras);for(const fid of ['report-as-of','report-from','report-to'])document.getElementById(fid).addEventListener('change',renderReports);document.getElementById('contact-import-preview').onclick=previewContactImport;document.getElementById('contact-import-start').onclick=importContacts;document.getElementById('contact-import-cancel').onclick=cancelContactImport;document.getElementById('contact-import-file').addEventListener('change',()=>{contactImportPreview=null;renderContactImportPreview()});document.getElementById('viewer-export-allowed').addEventListener('change',e=>{if(!canAdmin()){e.target.checked=false;notify('Only an Admin can change viewer export permission.',true);return}db.settings=db.settings||{};db.settings.allowViewerExport=e.target.checked;log('SETTING','permissions','viewer-export',e.target.checked?'Enabled viewer CSV exports':'Disabled viewer CSV exports');persist()});document.getElementById('backup-create').onclick=createBackup;document.getElementById('backup-restore').onclick=restoreBackupCopy;document.getElementById('backup-create').hidden=!canAdmin();document.getElementById('backup-restore').hidden=!canAdmin();document.getElementById('backup-file').closest('label').hidden=!canAdmin();for(const t of ['contacts','memberships','donations','tasks'])renderForm(t);
 try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}
 </script></body></html>
