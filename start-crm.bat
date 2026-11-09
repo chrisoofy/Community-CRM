@@ -8,10 +8,7 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
+start "Community CRM server" /min py -3 server.py
+timeout /t 2 /nobreak >nul
 start "" http://127.0.0.1:8765
-py -3 server.py
-if errorlevel 1 (
-  echo The CRM server could not start.
-  pause
-)
 endlocal
