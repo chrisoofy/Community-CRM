@@ -20,22 +20,116 @@
 <div class="stats" id="stats"></div><div class="grid2"><section class="panel"><h3>Recent activity</h3><div id="recent-activity"></div></section><section class="panel"><h3>Upcoming / open tasks</h3><div id="dashboard-tasks"></div></section></div>
 </section>
 <section id="page-contacts" class="page hidden"><div class="page-title"><div><h2>Contacts</h2><p class="muted">Create, search, update, archive, and restore people records.</p></div><button id="new-contact">+ New contact</button></div>
-<section class="panel"><h3 id="contact-form-title">Add contact</h3><form id="contact-form"></form><div id="contact-message" role="status"></div></section>
+<section class="panel"><h3 id="contact-form-title">Add contact</h3><form id="contact-form"></form><div id="contact-message" role="status"></div></section><section class="panel" id="contact-import-panel"><h3>Import contacts from CSV</h3><p class="muted">Choose a contact CSV, preview every row, then import only when there are no errors. Existing IDs are skipped without changing their details.</p><div class="row"><label style="min-width:250px;flex:1">Choose contact file<input id="contact-import-file" type="file" accept=".csv,text/csv"></label><button type="button" id="contact-import-preview">Preview</button><button type="button" id="contact-import-start" disabled>Import</button><button type="button" id="contact-import-cancel" class="secondary">Cancel</button></div><p id="contact-import-message" role="status" aria-live="polite"></p><div id="contact-import-preview-table" class="table-wrap"></div></section>
 <section class="panel"><div class="row"><label style="flex:2">Search contacts<input id="contact-search" type="search" placeholder="Name, email, tag or phone"></label><label>Show<select id="contact-filter"><option value="active">Active</option><option value="archived">Archived</option><option value="all">All</option></select></label><button id="clear-contact-search" class="secondary">Clear</button></div><div id="contacts-table" class="table-wrap"></div></section></section>
 <section id="page-contact-details" class="page hidden"><div class="page-title"><div><h2>Contact Details</h2><p class="muted">Select a contact to see the full profile and connected records.</p></div><button data-goto="contacts" class="secondary">Back to Contacts</button></div><section class="panel"><label style="max-width:500px">Choose contact<select id="detail-contact-select"><option value="">Select a contact</option></select></label><div id="contact-profile"></div></section></section>
 <section id="page-memberships" class="page hidden"><div class="page-title"><div><h2>Memberships</h2><p class="muted">Track plans, status, start dates and renewals.</p></div></div><section class="panel"><h3 id="membership-form-title">Add membership</h3><form id="membership-form"></form><div id="membership-message" role="status"></div></section><section class="panel"><h3>Membership counts</h3><label>Count as of date<input id="membership-as-of" type="date" value="2026-10-15"></label><div id="membership-counts" class="stats"></div></section><section class="panel"><h3>Payment and membership history</h3><div id="membership-history-list"></div></section><section class="panel"><div class="row"><label>Search memberships<input id="membership-search" type="search" placeholder="Contact or plan"></label><label>Show<select id="membership-filter"><option value="active">Active records</option><option value="archived">Archived</option><option value="all">All</option></select></label></div><div id="memberships-table" class="table-wrap"></div></section></section>
 <section id="page-donations" class="page hidden"><div class="page-title"><div><h2>Donations</h2><p class="muted">Record gifts and review donation history.</p></div></div><section class="panel"><h3 id="donation-form-title">Add donation</h3><form id="donation-form"></form><div id="donation-message" role="status"></div></section><section class="panel"><div class="row"><label>Campaign<input id="donation-campaign" type="search" placeholder="Exact campaign name"></label><label>From date<input id="donation-from" type="date" value="2026-01-01"></label><label>To date<input id="donation-to" type="date" value="2026-12-31"></label><label>Search donations<input id="donation-search" type="search" placeholder="Donor, fund or date"></label><label>Show<select id="donation-filter"><option value="active">Active records</option><option value="archived">Archived</option><option value="all">All</option></select></label></div><div id="donation-total" class="stats"></div><div id="donations-table" class="table-wrap"></div></section></section>
 <section id="page-tasks" class="page hidden"><div class="page-title"><div><h2>Tasks</h2><p class="muted">Assign follow-ups, track due dates, and mark work complete.</p></div></div><section class="panel"><h3 id="task-form-title">Add task</h3><form id="task-form"></form><div id="task-message" role="status"></div></section><section class="panel"><div class="row"><label>Search tasks<input id="task-search" type="search" placeholder="Task, assignee or contact"></label><label>Show<select id="task-filter"><option value="active">Active records</option><option value="archived">Archived</option><option value="all">All</option></select></label></div><div id="tasks-table" class="table-wrap"></div></section></section>
-<section id="page-reports" class="page hidden"><div class="page-title"><div><h2>Reports</h2><p class="muted">Summary metrics and exportable data for coursework demonstrations.</p></div><button id="report-export">Export report CSV</button></div><div id="report-stats" class="stats"></div><div class="grid2"><section class="panel"><h3>Donations by fund</h3><div id="fund-report"></div></section><section class="panel"><h3>Membership status</h3><div id="membership-report"></div></section></div><section class="panel"><h3>Data export</h3><p>Download records for analysis or keep a JSON backup.</p><div class="row"><button data-export="contacts">Contacts CSV</button><button data-export="memberships">Memberships CSV</button><button data-export="donations">Donations CSV</button><button data-export="tasks">Tasks CSV</button><button id="report-json">Full JSON backup</button></div></section></section>
-<section id="page-settings" class="page hidden"><div class="page-title"><div><h2>Login / Settings</h2><p class="muted">Current demo session, role description, and data controls.</p></div><button id="logout" class="secondary">Log out</button></div><div class="grid2"><section class="panel"><h3>Session</h3><p id="session-info"></p><p>Admin: all demo controls. Staff: create and update records. Viewer: read-only. These permissions are UI-only and can be bypassed; never use this as production security.</p><button id="settings-signout" class="secondary">Sign out</button></section><section class="panel"><h3>Data management</h3><p>Export before resetting. Reset replaces the current local browser data with the sample dataset.</p><div class="row"><button id="settings-export2">Export JSON backup</button><button id="settings-reset2" class="danger">Reset sample data</button></div><p class="muted">Storage key: <code>communityCRM.v2</code> in this browser's localStorage. Data does not sync across devices.</p></section><section class="panel"><h3>Backup / restore copy (Admin only)</h3><button id="backup-create">Download backup</button><label>Backup JSON<input id="backup-file" type="file" accept=".json,application/json"></label><button id="backup-restore">Restore as separate copy</button><p id="backup-message" role="status"></p></section><section class="panel"><h3>Change history</h3><div id="audit-list"></div></section></div></section>
+<section id="page-reports" class="page hidden"><div class="page-title"><div><h2>Reports</h2><p class="muted">Metrics are calculated from saved records and the selected dates.</p></div><button id="report-export">Export report CSV</button></div><section class="panel"><div class="row"><label>Count memberships and overdue jobs as of<input id="report-as-of" type="date" value="2026-10-15"></label><label>Donations from (inclusive)<input id="report-from" type="date"></label><label>Donations to (inclusive)<input id="report-to" type="date"></label></div><p class="muted">Donation date boundaries are inclusive. Leave both blank to include all saved donation dates.</p></section><div id="report-stats" class="stats"></div><div class="grid2"><section class="panel"><h3>Donations by fund</h3><div id="fund-report"></div></section><section class="panel"><h3>Membership status</h3><div id="membership-report"></div></section></div><section class="panel"><h3>Data export</h3><p>Download records for analysis or keep a JSON backup.</p><div class="row"><button data-export="contacts">Contacts CSV</button><button data-export="memberships">Memberships CSV</button><button data-export="donations">Donations CSV</button><button data-export="tasks">Tasks CSV</button><button id="email-list-export">Email permission list CSV</button><button id="report-json">Full JSON backup (Admin)</button></div></section></section>
+<section id="page-settings" class="page hidden"><div class="page-title"><div><h2>Login / Settings</h2><p class="muted">Current demo session, role description, and data controls.</p></div><button id="logout" class="secondary">Log out</button></div><div class="grid2"><section class="panel"><h3>Session</h3><p id="session-info"></p><p>Admin: all demo controls. Staff: create and update records. Viewer: read-only. These permissions are UI-only and can be bypassed; never use this as production security.</p><button id="settings-signout" class="secondary">Sign out</button></section><section class="panel"><h3>Data management</h3><p>Export before resetting. Reset replaces the current local browser data with the sample dataset.</p><div class="row"><button id="settings-export2">Export JSON backup</button><button id="settings-reset2" class="danger">Reset sample data</button></div><p class="muted">Storage key: <code>communityCRM.v2</code> in this browser's localStorage. Data does not sync across devices.</p></section><section class="panel" id="viewer-export-settings"><h3>Viewer export permission (Admin only)</h3><label><span><input id="viewer-export-allowed" type="checkbox" style="width:auto"> Allow viewers to download CSV exports</span></label><p class="muted">Viewer imports are never allowed. JSON backup and restore remain Admin-only.</p></section><section class="panel"><h3>Backup / restore copy (Admin only)</h3><button id="backup-create">Download backup</button><label>Backup JSON<input id="backup-file" type="file" accept=".json,application/json"></label><button id="backup-restore">Restore as separate copy</button><p id="backup-message" role="status"></p></section><section class="panel"><h3>File import and download history</h3><div id="file-history-list"></div></section><section class="panel"><h3>Change history</h3><div id="audit-list"></div></section></div></section>
 </div></main>
 <script>
 /* DATA STORAGE: db is the in-memory model. loadDB reads browser localStorage.
    persist writes successful changes. This browser-only demo is not a secure multi-user system. */
 const KEY='communityCRM.v2';const id=()=>crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2);const dateToday=()=>new Date().toISOString().slice(0,10);
 function makePracticeMemberships(){const starts=['2025-10-15','2025-11-01','2025-12-01','2026-01-01','2026-02-28','2026-03-01','2026-04-01','2026-05-01','2026-06-01','2026-07-01','2026-08-01','2026-09-20'];return starts.map((start,i)=>{const family=i>=10,plan=family?'Family ($40)':'One person ($35)';return {id:'M'+String(i+1).padStart(3,'0'),contactId:'C'+String(i+1).padStart(3,'0'),plan,startDate:start,renewalDate:membershipRenewalDate(start),status:'Active',paymentCode:'PRACTICE-'+String(i+1).padStart(3,'0'),paymentMethod:'Card',paymentStatus:'Paid',peopleCovered:family?2:1,archived:false}})}
-function seed(){const hs=[{id:'H001',name:'Rivera Household',address:'12 Oak Street',notes:''},{id:'H002',name:'Chen Household',address:'45 Pine Avenue',notes:'Volunteer family'},{id:'H003',name:'Johnson Household',address:'8 Cedar Lane',notes:''},{id:'H004',name:'Patel Household',address:'90 Lake Road',notes:''},{id:'H005',name:'Garcia Household',address:'21 Hill Street',notes:''}];const ns=[['Alex','Rivera','alex.rivera@example.com','Volunteer','H001'],['Sam','Rivera','sam.rivera@example.com','Donor','H001'],['Jamie','Chen','jamie.chen@example.com','Member','H002'],['Taylor','Chen','taylor.chen@example.com','Volunteer','H002'],['Morgan','Johnson','morgan.johnson@example.com','Member','H003'],['Casey','Johnson','casey.johnson@example.com','Donor','H003'],['Jordan','Patel','jordan.patel@example.com','Member','H004'],['Riley','Garcia','riley.garcia@example.com','Volunteer','H005'],['Avery','Brooks','avery.brooks@example.com','Donor',''],['Drew','Morgan','drew.morgan@example.com','Member',''],['Cameron','Price','cameron.price@example.com','Volunteer',''],['Quinn','Bennett','quinn.bennett@example.com','Donor',''],['Skyler','Flores','skyler.flores@example.com','Member',''],['Parker','Reed','parker.reed@example.com','Volunteer',''],['Emerson','Ward','emerson.ward@example.com','Donor',''],['Finley','Cruz','finley.cruz@example.com','Member',''],['Harper','Ross','harper.ross@example.com','Volunteer',''],['Rowan','Kelly','rowan.kelly@example.com','Donor',''],['Reese','Diaz','reese.diaz@example.com','Member',''],['Dakota','Gray','dakota.gray@example.com','Volunteer',''],['Logan','Perry','logan.perry@example.com','Volunteer',''],['Sydney','Foster','sydney.foster@example.com','Donor',''],['Micah','Long','micah.long@example.com','Member',''],['Robin','Sanders','robin.sanders@example.com','Volunteer',''],['Elliot','Powell','elliot.powell@example.com','Donor',''],['Kendall','Butler','kendall.butler@example.com','Member',''],['Payton','Hughes','payton.hughes@example.com','Volunteer',''],['Marley','Barnes','marley.barnes@example.com','Donor',''],['Cory','Mitchell','cory.mitchell@example.com','Former member',''],['Archived','Contact','archived.contact@example.com','Archived sample','']];const now=new Date().toISOString();return {contacts:ns.map((n,i)=>({id:i===29?'C130':'C'+String(i+1).padStart(3,'0'),firstName:n[0],lastName:n[1],email:n[2],phone:'555-010'+(i%10),tags:n[3],householdId:n[4],notes:i===29?'Archived sample contact for rubric testing.':'',emailPermission:true,archived:i===29,createdAt:now,updatedAt:now})),households:hs.map(h=>({...h,archived:false})),memberships:makePracticeMemberships(),membershipPayments:[],membershipHistory:[],donations:[{id:'D001',contactId:'C002',amount:50,date:dateToday(),fund:'Community programs',notes:'',archived:false},{id:'D002',contactId:'C006',amount:25,date:dateToday(),fund:'General',notes:'',archived:false}],tasks:[{id:'T001',title:'Welcome new member',assignedTo:'Staff',dueDate:dateToday(),status:'Open',contactId:'C003',archived:false}],audit:[]}}
-function load(){try{const v=JSON.parse(localStorage.getItem(KEY)||'null');return v?{...seed(),...v,membershipPayments:v.membershipPayments||[],membershipHistory:v.membershipHistory||[]}:seed()}catch(e){return seed()}}
+function seed(){
+ const now=new Date().toISOString();
+ const contacts=`C101|Alex Rivera|person101@example.com|555-0101|H101|member|true
+C102|Sam Lee|person102@example.com|555-0102|H101|donor|false
+C103|Jordan Patel|person103@example.com|555-0103|H102|member|true
+C104|Casey Park|person104@example.com|555-0104|H102|donor|false
+C105|Taylor Kim|person105@example.com|555-0105|H103|member|true
+C106|Morgan Chen|person106@example.com|555-0106|H103|donor|false
+C107|Avery Ross|person107@example.com|555-0107|H104|member|true
+C108|Riley Stone|person108@example.com|555-0108|H104|donor|false
+C109|Jamie Cruz|person109@example.com|555-0109|H105|member|true
+C110|Drew Hall|person110@example.com|555-0110|H105|donor|false
+C111|Alex Rivera 2|person111@example.com|555-0111||member|true
+C112|Sam Lee 2|person112@example.com|555-0112||donor|false
+C113|Jordan Patel 2|person113@example.com|555-0113||member|true
+C114|Casey Park 2|person114@example.com|555-0114||donor|false
+C115|Taylor Kim 2|person115@example.com|555-0115||member|true
+C116|Morgan Chen 2|person116@example.com|555-0116||donor|false
+C117|Avery Ross 2|person117@example.com|555-0117||member|true
+C118|Riley Stone 2|person118@example.com|555-0118||donor|false
+C119|Jamie Cruz 2|person119@example.com|555-0119||member|true
+C120|Drew Hall 2|person120@example.com|555-0120||donor|false
+C121|Alex Rivera 3|person121@example.com|555-0121||member|true
+C122|Sam Lee 3|person122@example.com|555-0122||donor|false
+C123|Jordan Patel 3|person123@example.com|555-0123||member|true
+C124|Casey Park 3|person124@example.com|555-0124||donor|false
+C125|Taylor Kim 3|person125@example.com|555-0125||member|true
+C126|Morgan Chen 3|person126@example.com|555-0126||donor|false
+C127|Avery Ross 3|person127@example.com|555-0127||member|true
+C128|Riley Stone 3|person128@example.com|555-0128||donor|false
+C129|Jamie Cruz 3|person129@example.com|555-0129||member|true
+C130|Drew Hall 3|person130@example.com|555-0130||donor|false`.split('\n').map(line=>{const [cid,name,email,phone,household,tags,opt]=line.split('|');const space=name.indexOf(' ');return {id:cid,firstName:name.slice(0,space),lastName:name.slice(space+1),email,phone,householdId:household||'',tags,notes:'Fake classroom contact',emailPermission:opt==='true',archived:false,createdAt:now,updatedAt:now}});
+ const households=`H101|Test household 1
+H102|Test household 2
+H103|Test household 3
+H104|Test household 4
+H105|Test household 5`.split('\n').map(line=>{const [hid,name]=line.split('|');return {id:hid,name,address:'',notes:'',archived:false}});
+ const memberships=`M101|C101|H101|family|40|2025-10-31|2026-10-31|paid|MEM-101
+M102|C103|H102|family|40|2026-10-15|2027-10-15|paid|MEM-102
+M103|C105||individual|35|2025-10-16|2026-10-16|paid|MEM-103
+M104|C106||individual|35|2025-10-17|2026-10-17|paid|MEM-104
+M105|C107||individual|35|2025-11-01|2026-11-01|paid|MEM-105
+M106|C108||individual|35|2025-11-10|2026-11-10|paid|MEM-106
+M107|C109||individual|35|2025-11-14|2026-11-14|paid|MEM-107
+M108|C110||individual|35|2026-10-15|2027-10-15|paid|MEM-108
+M109|C111||individual|35|2026-10-15|2027-10-15|paid|MEM-109
+M110|C112||individual|35|2026-10-15|2027-10-15|paid|MEM-110
+M111|C113||individual|35|2026-10-15|2027-10-15|paid|MEM-111
+M112|C114||student_senior|30|2026-10-15|2027-10-15|paid|MEM-112
+M113|C115||individual|35|2025-10-01|2026-10-01|paid|MEM-113
+M114|C116||individual|35|2025-10-01|2026-10-01|paid|MEM-114
+M115|C117||individual|35|2025-10-01|2026-10-01|paid|MEM-115
+M116|C118||individual|35|2025-10-01|2026-10-01|paid|MEM-116
+M117|C119||individual|35|||pending|MEM-117
+M118|C120||individual|35|||pending|MEM-118
+M119|C121||individual|35|||pending|MEM-119
+M120|C122||individual|35|||pending|MEM-120`.split('\n').map(line=>{const [mid,cid,hid,plan,price,start,end,status,code]=line.split('|');const label=plan==='family'?'Family ($40)':plan==='student_senior'?'Student or senior ($30)':'One person ($35)';return {id:mid,contactId:cid,householdId:hid||'',plan:label,price:Number(price),startDate:start||'',renewalDate:end||'',status:status==='pending'?'Pending':end&&end<='2026-10-15'?'Expired':'Active',paymentStatus:status==='paid'?'Paid':'Pending',paymentCode:code,paymentMethod:'fake cash',peopleCovered:plan==='family'?2:1,archived:false}});
+ const membershipPayments=memberships.filter(m=>m.paymentStatus==='Paid').map(m=>({id:'PAY-'+m.id,membershipId:m.id,code:m.paymentCode,amount:m.price,method:'fake cash',status:'Paid',date:m.startDate}));
+ const donations=`D001|C101|50|2026-10-01|Campaign A|DON-001
+D002|C101|25|2026-10-02|Campaign A|DON-002
+D003|C102|10|2026-10-03|Campaign A|DON-003
+D004|C103|10|2026-10-04|Campaign A|DON-004
+D005|C104|10|2026-10-05|Campaign A|DON-005
+D006|C105|10|2026-10-06|Campaign A|DON-006
+D007|C106|10|2026-10-07|Campaign A|DON-007
+D008|C107|10|2026-10-08|Campaign A|DON-008
+D009|C108|10|2026-10-09|Campaign A|DON-009
+D010|C109|10|2026-10-10|Campaign A|DON-010
+D011|C111|20|2026-10-01|Campaign B|DON-011
+D012|C112|20|2026-10-02|Campaign B|DON-012
+D013|C113|20|2026-10-03|Campaign B|DON-013
+D014|C114|20|2026-10-04|Campaign B|DON-014
+D015|C115|20|2026-10-05|Campaign B|DON-015
+D016|C116|20|2026-10-06|Campaign B|DON-016
+D017|C117|20|2026-10-07|Campaign B|DON-017
+D018|C118|20|2026-10-08|Campaign B|DON-018
+D019|C119|20|2026-10-09|Campaign B|DON-019
+D020|C120|20|2026-10-10|Campaign B|DON-020`.split('\n').map(line=>{const [did,cid,amount,date,fund,code]=line.split('|');return {id:did,contactId:cid,amount:Number(amount),date,fund,paymentMethod:'fake cash',paymentCode:code,thanked:false,notes:'',voided:false,archived:false}});
+ const tasks=`T001|C101|Manual test task 1|2026-10-01|complete
+T002|C102|Manual test task 2|2026-10-01|complete
+T003|C103|Manual test task 3|2026-10-01|complete
+T004|C104|Manual test task 4|2026-10-01|complete
+T005|C105|Manual test task 5|2026-10-01|complete
+T006|C106|Manual test task 6|2026-10-08|open
+T007|C107|Manual test task 7|2026-10-09|open
+T008|C108|Manual test task 8|2026-10-10|open
+T009|C109|Manual test task 9|2026-10-11|open
+T010|C110|Manual test task 10|2026-10-12|open
+T011|C111|Manual test task 11|2026-10-13|open
+T012|C112|Manual test task 12|2026-10-15|open
+T013|C113|Manual test task 13|2026-10-16|open
+T014|C114|Manual test task 14|2026-10-17|open
+T015|C115|Manual test task 15|2026-10-18|open`.split('\n').map(line=>{const [tid,cid,title,due,status]=line.split('|');return {id:tid,contactId:cid,title,assignedTo:'staff-demo',dueDate:due,status:status==='complete'?'Complete':'Open',archived:false}});
+ return {contacts,households,memberships,membershipPayments,membershipHistory:[],donations,tasks,audit:[],fileHistory:[],settings:{allowViewerExport:false}};
+}
+function load(){try{const defaults=seed(),v=JSON.parse(localStorage.getItem(KEY)||'null');return v?{...defaults,...v,membershipPayments:v.membershipPayments||defaults.membershipPayments,membershipHistory:v.membershipHistory||[],fileHistory:v.fileHistory||[],settings:{...defaults.settings,...v.settings}}:defaults}catch(e){return seed()}}
 let db=load(),role=null,currentPage='dashboard',editing={contacts:null,memberships:null,donations:null,tasks:null};
 const defs={contacts:{singular:'contact',fields:[['firstName','First name','text',true],['lastName','Last name','text',true],['email','Email','email',true],['phone','Phone','tel',false],['householdId','Household','household',false],['tags','Tags','text',false],['notes','Notes','text',false],['emailPermission','Email permission','boolean',false]],cols:['id','firstName','lastName','email','phone','householdId','tags','emailPermission','archived']},memberships:{singular:'membership',fields:[['contactId','Contact','contact',true],['plan','Plan','plan',true],['startDate','Start date','date',true],['renewalDate','Renewal date','date',true],['status','Status','membershipStatus',true],['paymentCode','Payment code','text',true],['paymentMethod','Payment method','paymentMethod',true],['paymentStatus','Payment status','paymentStatus',true]],cols:['id','contactId','plan','startDate','renewalDate','status','paymentCode','paymentMethod','paymentStatus','archived']},donations:{singular:'donation',fields:[['contactId','Donor','contact',true],['amount','Amount ($)','number',true],['date','Date','date',true],['fund','Campaign / cause','text',true],['paymentMethod','Payment method','text',true],['paymentCode','Payment code','text',true],['thanked','Thanked?','boolean',true],['notes','Notes','text',false]],cols:['id','contactId','amount','date','fund','paymentMethod','paymentCode','thanked','voided','archived']},tasks:{singular:'task',fields:[['contactId','Related contact','contact',true],['title','Task type / title','text',true],['assignedTo','Person in charge','text',true],['dueDate','Due date','date',true],['status','Status','taskStatus',true]],cols:['id','contactId','title','assignedTo','dueDate','status','archived']}};
 const canWrite=()=>role==='admin'||role==='staff',canAdmin=()=>role==='admin';
