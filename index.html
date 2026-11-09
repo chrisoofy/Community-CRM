@@ -129,7 +129,29 @@ T014|C114|Manual test task 14|2026-10-17|open
 T015|C115|Manual test task 15|2026-10-18|open`.split('\n').map(line=>{const [tid,cid,title,due,status]=line.split('|');return {id:tid,contactId:cid,title,assignedTo:'staff-demo',dueDate:due,status:status==='complete'?'Complete':'Open',archived:false}});
  return {contacts,households,memberships,membershipPayments,membershipHistory:[],donations,tasks,audit:[],fileHistory:[],settings:{allowViewerExport:false,planPrices:{onePerson:35,family:40,studentSenior:30}}};
 }
-function load(){try{const defaults=seed(),v=JSON.parse(localStorage.getItem(KEY)||'null');return v?{...defaults,...v,membershipPayments:v.membershipPayments||defaults.membershipPayments,membershipHistory:v.membershipHistory||[],fileHistory:v.fileHistory||[],settings:{...defaults.settings,...v.settings}}:defaults}catch(e){return seed()}}
+function load(){
+ try{
+  const defaults=seed(),v=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(!v)return defaults;
+  const saved={...defaults,...v,membershipPayments:v.membershipPayments||defaults.membershipPayments,membershipHistory:v.membershipHistory||[],fileHistory:v.fileHistory||[],settings:{...defaults.settings,...v.settings}};
+  // CRM 1.3 supplied records: keep their canonical IDs, original values and household links.
+  // Preserve unrelated saved records, record history, timestamps and all CRM 5/6 data.
+  const suppliedIds=new Set(['C101','C102','C103','C104','C105']);
+  const supplied=defaults.contacts.filter(c=>suppliedIds.has(c.id));
+  const existing=(Array.isArray(v.contacts)?v.contacts:defaults.contacts).map(c=>{
+   const canonical=supplied.find(x=>x.id===c.id);
+   if(!canonical)return c;
+   return {...c,id:canonical.id,firstName:canonical.firstName,lastName:canonical.lastName,email:canonical.email,phone:canonical.phone,householdId:canonical.householdId,tags:canonical.tags,notes:canonical.notes,emailPermission:canonical.emailPermission,archived:canonical.archived,createdAt:c.createdAt||canonical.createdAt,updatedAt:c.updatedAt||canonical.updatedAt};
+  });
+  for(const c of supplied)if(!existing.some(x=>x.id===c.id))existing.push(c);
+  saved.contacts=existing;
+  for(const h of defaults.households.filter(x=>['H101','H102','H103'].includes(x.id))){
+   if(!saved.households.some(x=>x.id===h.id))saved.households.push(h);
+   else saved.households=saved.households.map(x=>x.id===h.id?{...x,id:h.id,name:h.name}:x);
+  }
+  return saved;
+ }catch(e){return seed()}
+}
 let db=load(),role=null,currentPage='dashboard',editing={contacts:null,memberships:null,donations:null,tasks:null},contactImportPreview=null;
 const defs={contacts:{singular:'contact',fields:[['id','Contact ID','text',false],['firstName','First name','text',true],['lastName','Last name','text',true],['email','Email','email',true],['phone','Phone','tel',false],['householdId','Household','household',false],['tags','Tags','text',false],['notes','Notes','text',false],['emailPermission','Email permission','boolean',false]],cols:['id','firstName','lastName','email','phone','householdId','tags','emailPermission','archived']},memberships:{singular:'membership',fields:[['id','Membership ID','text',false],['contactId','Contact','contact',true],['plan','Plan','plan',true],['startDate','Start date','date',true],['renewalDate','Renewal date','date',true],['status','Status','membershipStatus',true],['paymentCode','Payment code','text',true],['paymentMethod','Payment method','paymentMethod',true],['paymentStatus','Payment status','paymentStatus',true]],cols:['id','contactId','plan','startDate','renewalDate','status','paymentCode','paymentMethod','paymentStatus','archived']},donations:{singular:'donation',fields:[['id','Donation ID','text',false],['contactId','Donor','contact',true],['amount','Amount ($)','number',true],['date','Date','date',true],['fund','Campaign / cause','text',true],['paymentMethod','Payment method','text',true],['paymentCode','Payment code','text',true],['thanked','Thanked?','boolean',true],['notes','Notes','text',false]],cols:['id','contactId','amount','date','fund','paymentMethod','paymentCode','thanked','voided','archived']},tasks:{singular:'task',fields:[['id','Task ID','text',false],['contactId','Related contact','contact',true],['title','Task type / title','text',true],['assignedTo','Person in charge','text',true],['dueDate','Due date','date',true],['status','Status','taskStatus',true]],cols:['id','contactId','title','assignedTo','dueDate','status','archived']}};
 const canWrite=()=>role==='admin'||role==='staff',canAdmin=()=>role==='admin',canExport=()=>role==='admin'||role==='staff'||(role==='viewer'&&db.settings?.allowViewerExport===true);
