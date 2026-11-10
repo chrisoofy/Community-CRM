@@ -4,7 +4,7 @@ A browser-based community CRM coursework project. It links contacts, households,
 
 ## How to run this app
 
-- **Browser-only option:** Open `index.html` from the project folder (in Edge, right-click and choose **Open with → Microsoft Edge**). This keeps the original single-file workflow and uses browser-side validation.
+- **Browser-only option:** Open `index.html` from the project folder (in Edge, right-click and choose **Open with → Microsoft Edge**). Screens and existing data remain viewable, but donation/task changes are disabled because server authorization requires `start-crm.bat`.
 - **Server-validation option (Windows):** Install Python 3, then double-click `start-crm.bat`. It starts `server.py` and opens `http://127.0.0.1:8765` in your browser. Contact and household name values are trimmed and blank/space-only names are rejected by the local server before the existing browser storage save happens.
 - **Files:** `index.html` remains available on GitHub and can still be opened directly. `server.py` and `start-crm.bat` are optional additions; no npm packages are required.
 - **Storage:** Both options continue to use the same browser `localStorage` data for this browser profile. The local server validates names; it does not add a central database or server-side user authorization.
@@ -53,4 +53,4 @@ The JSON backup includes contacts, households, memberships and all stored period
 
 ## Data storage and security limitation
 
-The app stores data in the current browser's `localStorage` under `communityCRM.v2`. It does not sync across devices. Sign-in and role checks run in client-side JavaScript. The optional local server provides server-side name validation only; it is not a central database or server-side authorization system. Do not use real personal, donor, or payment information.
+The app stores records in the current browser's `localStorage` under `communityCRM.v2`; records do not sync across devices. When run through `start-crm.bat`, the local server issues an HttpOnly role session and checks donation/task create, edit, void, complete, archive, and restore requests before the browser writes those changes. Admin and Staff are allowed; Viewer and signed-out requests are rejected. The shared `demo123` passcode is intentionally a coursework shortcut. This is not production authentication or a central server database; someone with direct access to the browser profile can still alter localStorage. Do not use real personal, donor, or payment information.
