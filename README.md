@@ -7,7 +7,7 @@ A browser-based community CRM coursework project. It links contacts, households,
 - **Browser-only option:** Open `index.html` from the project folder (in Edge, right-click and choose **Open with → Microsoft Edge**). Screens and existing data remain viewable, but donation/task changes are disabled because server authorization requires `start-crm.bat`.
 - **Server-validation option (Windows):** Install Python 3, then double-click `start-crm.bat`. It starts `server.py` and opens `http://127.0.0.1:8765` in your browser. Contact and household name values are trimmed and blank/space-only names are rejected by the local server before the existing browser storage save happens.
 - **Files:** `index.html` remains available on GitHub and can still be opened directly. `server.py` and `start-crm.bat` are optional additions; no npm packages are required.
-- **Storage:** Both options continue to use the same browser `localStorage` data for this browser profile. The local server validates names; it does not add a central database or server-side user authorization.
+- **Storage:** Records remain in this browser's `localStorage` for this browser profile. When launched through `start-crm.bat`, the server issues an HttpOnly session for the selected demo role and checks donation/task create, edit, void, complete, archive, and restore requests before the browser saves them. Admin and Staff are allowed; Viewer and signed-out requests are rejected. This is a coursework demonstration using the shared `demo123` passcode, not production authentication or a central database.
 - **Test accounts:** Choose Admin, Staff, or Viewer on the sign-in screen. All demo roles use the fake passcode `demo123`.
 
 ## Load the classroom practice data
